@@ -1,48 +1,42 @@
-# Community Scoreboard
+# Bridgette’s Strikes
 
-A shared baseball scoreboard for tracking pitchers and their strike counts.
+An account-gated baseball scoreboard. Creators record pitcher strikes and can share a board with a strikee by email. After the invitee creates an account with that address, the board appears in both accounts and either person can update its counts.
 
-**Website:** [bridgette-scoreboard.netlify.app](https://bridgette-scoreboard.netlify.app) · **GitHub:** [kaimacann/bridgette-scoreboard](https://github.com/kaimacann/bridgette-scoreboard)
+## Getting started
 
-## Features
-
-- Add, select, and remove pitchers
-- Track each pitcher's strike count
-- Read the shared board without an editor key
-- Save changes through the site’s authenticated API
-
-The API is available at `/api/bridgette`. `GET` returns the shared board; `PUT` requires a bearer token. Scoreboard data is stored in the `bridgette-dashboard` Netlify Blobs store under the `scoreboard` key.
-
-## Run locally
-
-Use Node.js 22.19 or later and pnpm 10.30.3.
+Requires Node.js 22.19+ and pnpm 10.30.3. Provision a Neon development branch with Neon Auth and the Data API enabled. Copy the public endpoint variables from `.env.example`, then run from the repository root:
 
 ```sh
-pnpm install --frozen-lockfile
+cp .env.example .env
+# Set PUBLIC_NEON_AUTH_URL and PUBLIC_NEON_DATA_API_URL in .env
+pnpm install
 pnpm dev
 ```
 
-Useful checks:
+Open Astro's local URL. Add the local and deployed site origins to Neon Auth's trusted domains. Apply the migration on a temporary Neon branch first, then verify owner, invited strikee, and unrelated-account access before production.
 
-```sh
-pnpm check
-pnpm build
-```
+### Commands
 
-The development server prints the local URL when it starts. The production build is written to `dist/`.
+From the repository root, run `pnpm check`, `pnpm test`, and `pnpm build`. Test schema and row-level access changes on a temporary Neon branch before production.
 
-## Deploy on Netlify
+## Security and Limitations
 
-The Netlify project is [bridgette-scoreboard](https://app.netlify.com/projects/bridgette-scoreboard), and its intended public URL is [bridgette-scoreboard.netlify.app](https://bridgette-scoreboard.netlify.app). Connect this repository to that project, using the repository root as the base directory. The checked-in [`netlify.toml`](netlify.toml) configures the `pnpm build` command, `dist` publish directory, Netlify Function directory, API rewrite, and Node.js 22.19 runtime.
+Neon Auth issues short-lived JWTs. Postgres row-level security allows the owner and invited strikee to read and update a shared board; only the owner can manage invitations. The two endpoint URLs are public. Never expose a database connection string, API key, or password in client code.
 
-### Runtime variables
+## Structure
 
-Provision these variables to the project's **Production Functions** environment through the team’s secret-management process. Keep secret values out of this repository and out of pull requests.
+`src/` contains the Astro app, scoreboard, and account gate. `migrations/` defines tables and access policies; `test/` covers API and theme behavior.
 
-| Variable | Purpose |
-| --- | --- |
-| `BRIDGETTE_EDITOR_TOKEN` | Secret bearer token required to save scoreboard changes. Keep this configured after migration. |
-| `BRIDGETTE_MIGRATION_SITE_ID` | Site ID of the current Netlify site that holds the existing scoreboard. This is already configured on the new Netlify project. |
-| `BRIDGETTE_MIGRATION_BLOBS_TOKEN` | Temporary secret with read access to the source site's Blobs store. The first successful read copies the existing scoreboard into this site's store. Remove this variable after verifying the copy. |
+## References
 
-On the first read, the API copies the source board when migration access is configured. If the source board is empty or migration access is unavailable, it initializes the same Kai and Daniel defaults used by the original Terra dashboard. Saving shared changes still requires `BRIDGETTE_EDITOR_TOKEN`.
+- [Environment example](.env.example)
+- [Initial database migration](migrations/0001_accounts_and_scoreboards.sql)
+- [Neon API integration](src/lib/neon.ts)
+
+## Contributing
+
+Keep schema changes aligned with migration policies.
+
+## Credits and license
+
+No repository license file is present. Ask the maintainer before reusing code, visual assets, or themes.
