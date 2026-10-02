@@ -1,48 +1,51 @@
-# Community Scoreboard
+# Bridgette’s Strikes
 
-A shared baseball scoreboard for tracking pitchers and their strike counts.
+A baseball strike scoreboard with accounts, creator-owned boards, and email-based board sharing.
 
-**Website:** [bridgette-scoreboard.netlify.app](https://bridgette-scoreboard.netlify.app) · **GitHub:** [kaimacann/bridgette-scoreboard](https://github.com/kaimacann/bridgette-scoreboard)
+## What it does
 
-## Features
+A baseball strike scoreboard with accounts, creator-owned boards, and email-based board sharing.
 
-- Add, select, and remove pitchers
-- Track each pitcher's strike count
-- Read the shared board without an editor key
-- Save changes through the site’s authenticated API
+## Prerequisites, setup, usage, and operations
 
-The API is available at `/api/bridgette`. `GET` returns the shared board; `PUT` requires a bearer token. Scoreboard data is stored in the `bridgette-dashboard` Netlify Blobs store under the `scoreboard` key.
+Use Node.js 22.19 or later and pnpm 10.30.3. Copy `.env.example` to `.env`, configure the public Neon Auth and Data API URLs, then run `pnpm install --frozen-lockfile` and `pnpm dev`.
 
-## Run locally
-
-Use Node.js 22.19 or later and pnpm 10.30.3.
+### Common commands
 
 ```sh
-pnpm install --frozen-lockfile
 pnpm dev
-```
-
-Useful checks:
-
-```sh
 pnpm check
+pnpm test
 pnpm build
 ```
 
-The development server prints the local URL when it starts. The production build is written to `dist/`.
+## Security and Limitations
 
-## Deploy on Netlify
+Neon Auth JWTs and Postgres row-level security scope requests to owned or shared boards. Public endpoint URLs are not database credentials.
 
-The Netlify project is [bridgette-scoreboard](https://app.netlify.com/projects/bridgette-scoreboard), and its intended public URL is [bridgette-scoreboard.netlify.app](https://bridgette-scoreboard.netlify.app). Connect this repository to that project, using the repository root as the base directory. The checked-in [`netlify.toml`](netlify.toml) configures the `pnpm build` command, `dist` publish directory, Netlify Function directory, API rewrite, and Node.js 22.19 runtime.
+## Development and structure
 
-### Runtime variables
+Astro serves the scoreboard. `migrations/` defines account and scoreboard data; tests and scripts define supported checks.
 
-Provision these variables to the project's **Production Functions** environment through the team’s secret-management process. Keep secret values out of this repository and out of pull requests.
+## Validation
 
-| Variable | Purpose |
+pnpm check, pnpm test, pnpm build
+
+| Check | Command |
 | --- | --- |
-| `BRIDGETTE_EDITOR_TOKEN` | Secret bearer token required to save scoreboard changes. Keep this configured after migration. |
-| `BRIDGETTE_MIGRATION_SITE_ID` | Site ID of the current Netlify site that holds the existing scoreboard. This is already configured on the new Netlify project. |
-| `BRIDGETTE_MIGRATION_BLOBS_TOKEN` | Temporary secret with read access to the source site's Blobs store. The first successful read copies the existing scoreboard into this site's store. Remove this variable after verifying the copy. |
+| dev | `pnpm dev` |
+| check | `pnpm check` |
+| test | `pnpm test` |
+| build | `pnpm build` |
 
-On the first read, the API copies the source board when migration access is configured. If the source board is empty or migration access is unavailable, it initializes the same Kai and Daniel defaults used by the original Terra dashboard. Saving shared changes still requires `BRIDGETTE_EDITOR_TOKEN`.
+## References
+
+See the linked source files, configuration, and package scripts in this repository.
+
+## Contributing
+
+No contribution guide was present in the inspected source snapshot.
+
+## Credits and license
+
+No root license file was found in the inspected repository snapshot.
