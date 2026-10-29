@@ -75,8 +75,7 @@ export default function Marquee({
 					animationDirection: reverse ? 'reverse' : undefined,
 				}}
 			>
-				{renderGroup(0)}
-				{renderGroup(1)}
+				{[0, 1].map(renderGroup)}
 			</div>
 		</div>
 	);
