@@ -1,27 +1,35 @@
 # Bridgette’s Strikes
 
-A baseball strike scoreboard where each board belongs to its creator and can be shared with a strikee by email.
-
-## What it does
-
-Not applicable.
-
-## Prerequisites
-
-Not applicable.
+A baseball strike scoreboard where each board belongs to its creator and can be shared with a strikee by email. After the strikee creates an account with the invited email address, the board appears in both accounts and either person can update pitcher strike counts.
 
 ## Get started
 
-Use Node.js 22.19 or later and pnpm 10.30.3. Copy `config/.env.example` to `.env` and set the public Neon Auth URL and Neon Data API URL for a development Neon branch. Then start Astro:
+Use Node.js 22.19 or later and pnpm 10.30.3. Provision a Neon development branch with Neon Auth and the Data API enabled. Copy `config/.env.example` to `.env` and set the public endpoint URLs:
 
 ```sh
+cp config/.env.example .env
 pnpm install --frozen-lockfile
 pnpm run dev
 ```
 
-Open the URL printed by Astro (normally `http://localhost:4321`). Without the Neon URLs, the local page displays a setup message; authentication and persistent accounts require Neon Auth and the Data API to be provisioned.
+Open the URL printed by Astro, normally `http://localhost:4321`. Add the local and deployed site origins to Neon Auth’s trusted domains. Without the endpoint URLs, the local page displays a setup message; authentication and persistent accounts require Neon Auth and the Data API.
 
-Useful checks:
+## Accounts and sharing
+
+Scoreboard data and share invitations are stored in Neon Postgres and exposed through the Neon Data API. The creator can invite a strikee by email; after the strikee creates an account with that email, the shared board appears in their account. Both creator and strikee can update pitcher strike counts. Row-level security in [`migrations/0001_accounts_and_scoreboards.sql`](migrations/0001_accounts_and_scoreboards.sql) limits requests to the signed-in user’s own or shared boards.
+
+## Configuration and security
+
+Set these public endpoint URLs in the local `.env` and Netlify’s build environment:
+
+| Variable | Value |
+| --- | --- |
+| `PUBLIC_NEON_AUTH_URL` | The branch’s Neon Auth endpoint URL |
+| `PUBLIC_NEON_DATA_API_URL` | The branch’s Neon Data API REST endpoint URL |
+
+These URLs are public. Neon Auth issues short-lived JWTs, and Postgres row-level security enforces access. Never expose a database connection string, Neon API key, or password in client code or these public variables. Apply migrations to a temporary Neon branch first and verify owner, invited strikee, and unrelated-account access before production.
+
+## Checks
 
 ```sh
 pnpm check
@@ -29,53 +37,16 @@ pnpm run test
 pnpm run build
 ```
 
-## Usage
+## Structure
 
-**Website:** [bridgette-scoreboard.netlify.app](https://bridgette-scoreboard.netlify.app) · **GitHub:** [kaimacann/bridgette-scoreboard](https://github.com/kaimacann/bridgette-scoreboard)
+`src/` contains the Astro app, scoreboard, and account gate. `migrations/` defines tables and access policies; `test/` covers API and theme behavior.
 
-### Accounts and sharing
-Accounts use Neon Auth. Scoreboard data and share invitations are stored in Neon Postgres and exposed through the Neon Data API. The creator can invite a strikee by email; after the strikee creates an account with that email, the shared board appears in their account. Both creator and strikee can update pitcher strike counts. Row-level security in [`migrations/0001_accounts_and_scoreboards.sql`](migrations/0001_accounts_and_scoreboards.sql) limits each database request to the signed-in user’s own or shared boards.
+## Deployment
 
-The old site editor key was a single static Netlify secret checked by the write function. It was not linked to a user, so the deployed app could only ask everyone for the same key, and writes failed when that secret was absent. The key prompt and Blobs-backed function have been removed from the app.
-
-## Configuration and security
-
-### Neon setup
-On the Neon development branch, enable Neon Auth and the Neon Data API, add `http://localhost:4321` and the production site origin to Neon Auth’s trusted domains, then apply the checked-in SQL migration. Apply the migration through a versioned migration workflow on a temporary Neon branch first, and verify creator, strikee, and unrelated-account access before applying it to production.
-
-Set these **public endpoint URLs** in the local `.env` and Netlify’s build environment:
-
-| Variable | Value |
-| --- | --- |
-| `PUBLIC_NEON_AUTH_URL` | The branch’s Neon Auth endpoint URL |
-| `PUBLIC_NEON_DATA_API_URL` | The branch’s Neon Data API REST endpoint URL |
-
-These URLs are public. User authorization is enforced by short-lived Neon Auth JWTs and Postgres row-level security. Do not add a database connection string, Neon API key, or password to these public variables.
-
-## Development and structure
-
-Not applicable.
-
-## Validation
-
-Not applicable.
-
-## Deployment and operations
-
-The Netlify project is [bridgette-scoreboard](https://app.netlify.com/projects/bridgette-scoreboard). It builds this repository from its root using `pnpm run build` and publishes `dist/`, as configured in [`netlify.toml`](netlify.toml). Set the two public endpoint variables above in Netlify’s build environment after Neon is provisioned. The static site does not need a shared editor secret or a serverless function.
-
-## Data, privacy, and limitations
-
-Not applicable.
+The Netlify project is [bridgette-scoreboard](https://app.netlify.com/projects/bridgette-scoreboard). It builds from the repository root using `pnpm run build` and publishes `dist/`, as configured in [`netlify.toml`](netlify.toml). Set the two public endpoint variables in Netlify’s build environment after Neon is provisioned. The static site does not need a shared editor secret or serverless function.
 
 ## References
 
-Not applicable.
-
-## Contributing
-
-Not applicable.
-
-## Credits and license
-
-Not applicable.
+- [Environment example](config/.env.example)
+- [Initial database migration](migrations/0001_accounts_and_scoreboards.sql)
+- [Neon API integration](src/lib/neon.ts)
