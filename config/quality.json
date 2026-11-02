@@ -3,7 +3,7 @@
 	"sourceRoots": ["src", "netlify", "test"],
 	"extensions": [".astro", ".js", ".jsx", ".mjs", ".ts", ".tsx"],
 	"aliases": { "@components/": "src/components/", "@lib/": "src/lib/", "@utils": "src/lib/utils" },
-	"tsconfig": "tsconfig.json",
+	"tsconfig": "config/tsconfig.json",
 	"tools": { "eslint": "eslint", "knip": "knip", "prettier": "prettier", "tsc": "tsc" },
 	"autofix": { "document": false, "knip": false, "lint": false, "name": true },
 	"singleUse": { "skippedDirectories": ["src/components", "src/lib/neon.ts"] },

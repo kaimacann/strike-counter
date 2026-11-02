@@ -1,4 +1,5 @@
 import prettier from 'prettier';
+import config from '../config/.prettierrc.mjs';
 
 const filepathIndex = process.argv.indexOf('--stdin-filepath');
 const filepath = filepathIndex === -1 ? undefined : process.argv[filepathIndex + 1];
@@ -15,7 +16,6 @@ const source = await new Promise((resolve, reject) => {
 	process.stdin.on('end', () => resolve(input));
 	process.stdin.on('error', reject);
 });
-const config = (await prettier.resolveConfig(filepath)) ?? {};
 const formatted = await prettier.format(source, { ...config, filepath });
 
 await new Promise((resolve, reject) => {
