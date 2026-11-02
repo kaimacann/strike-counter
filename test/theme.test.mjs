@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
+/*//////////////////////////////////////////////////
+REGEX
+//////////////////////////////////////////////////*/
+const BG_PRIMARY_1_REGEX = /bg-primary-1/;
+const BG_PRIMARY_1_PR_6_REGEX = /bg-primary-1 pr-6/;
 
 const [css, layout, scoreboard, imgTheme, accountGate, marquee] = await Promise.all([
 	readFile(new URL('../src/styles.css', import.meta.url), 'utf8'),
@@ -33,11 +38,11 @@ test('primary and secondary Radix-style scales define all twelve light tokens', 
 });
 
 test('cream page surface and burgundy brand surface use semantic theme tokens', () => {
-	assert.match(layout, /bg-primary-1/);
+	assert.match(layout, BG_PRIMARY_1_REGEX);
 	assert.match(layout, /text-primary-12/);
 	assert.match(scoreboard, /bg-secondary-12[^\n]*text-secondary-1/);
-	assert.match(accountGate, /bg-primary-1/);
-	assert.match(scoreboard, /bg-primary-1 pr-6/);
+	assert.match(accountGate, BG_PRIMARY_1_REGEX);
+	assert.match(scoreboard, BG_PRIMARY_1_PR_6_REGEX);
 	assert.deepEqual(token('primary-1'), [255, 250, 240]);
 	assert.deepEqual(token('secondary-12'), [100, 23, 43]);
 });
@@ -57,7 +62,7 @@ test('Playball is loaded locally and used by the scoreboard title', async () => 
 test('Bridgette illustrations use color-burn blending over the cream canvas', () => {
 	assert.match(imgTheme, /mix-blend-color-burn/);
 	assert.doesNotMatch(imgTheme, /grayscale/);
-	assert.match(scoreboard, /bg-primary-1 pr-6/);
+	assert.match(scoreboard, BG_PRIMARY_1_PR_6_REGEX);
 	assert.match(scoreboard, /alt='Illustration of Bridgette batting'/);
 	assert.match(scoreboard, /alt='Illustration of the pitcher'/);
 });

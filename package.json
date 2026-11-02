@@ -14,14 +14,14 @@
     "check": "astro check",
     "test": "node --test test/*.test.mjs",
     "test:full": "astro check && node --test test/*.test.mjs && astro build",
-    "quality:all": "pnpm exec terra-quality quality --all",
+    "quality:all": "astro sync && pnpm exec terra-quality quality --all",
     "test:all": "pnpm run test:full"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.4",
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.4",
-    "@terra-symposium/error-boundaries": "0.1.0",
+    "@terra-symposium/standards-error-boundaries": "^0.1.2",
     "astro": "^7.2.8",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
