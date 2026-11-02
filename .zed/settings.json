@@ -3,7 +3,7 @@
 	"formatter": {
 		"external": {
 			"command": "node",
-			"arguments": ["./.zed/prettier.mjs", "--stdin-filepath", "{buffer_path}"]
+			"arguments": ["./config/zed-prettier.mjs", "--stdin-filepath", "{buffer_path}"]
 		}
 	}
 }

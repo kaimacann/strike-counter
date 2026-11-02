@@ -2,7 +2,7 @@
   "entry": [
     "config/astro.config.mjs",
     "config/tailwind.config.mjs",
-    ".zed/prettier.mjs",
+    "config/zed-prettier.mjs",
     "src/pages/**/*.astro",
     "test/**/*.mjs",
     "config/**/*.{js,mjs,cjs,ts}"
