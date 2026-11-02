@@ -4,7 +4,8 @@
     "config/tailwind.config.mjs",
     ".zed/prettier.mjs",
     "src/pages/**/*.astro",
-    "test/**/*.mjs"
+    "test/**/*.mjs",
+    "config/**/*.{js,mjs,cjs,ts}"
   ],
   "ignoreExportsUsedInFile": true,
   "ignoreDependencies": [
