@@ -8,14 +8,14 @@
     "node": ">=22.19.0"
   },
   "scripts": {
-    "dev": "astro dev --config config/astro.config.mjs",
-    "build": "astro build --config config/astro.config.mjs",
-    "check": "astro check --config config/astro.config.mjs --tsconfig config/tsconfig.json",
-    "format": "prettier --config config/.prettierrc.mjs --ignore-path config/.prettierignore --write .",
-    "format:check": "prettier --config config/.prettierrc.mjs --ignore-path config/.prettierignore --check .",
-    "lint": "eslint --config config/eslint.config.mjs .",
-    "knip": "knip --config config/knip.json",
-    "test": "node --test test/*.test.mjs"
+    "dev": "cd .. && astro dev --config config/astro.config.mjs",
+    "build": "cd .. && astro build --config config/astro.config.mjs",
+    "check": "cd .. && astro check --config config/astro.config.mjs --tsconfig config/tsconfig.json",
+    "format": "cd .. && prettier --config config/.prettierrc.mjs --ignore-path config/.prettierignore --write .",
+    "format:check": "cd .. && prettier --config config/.prettierrc.mjs --ignore-path config/.prettierignore --check .",
+    "lint": "cd .. && eslint --config config/eslint.config.mjs .",
+    "knip": "cd .. && knip --config config/knip.json",
+    "test": "cd .. && node --test test/*.test.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.4",

@@ -1,1 +1,18 @@
-config/package.json
+{
+	"name": "bridgette-scoreboard-workspace",
+	"private": true,
+	"packageManager": "pnpm@10.30.3",
+	"engines": {
+		"node": ">=22.19.0"
+	},
+	"scripts": {
+		"dev": "pnpm --dir config run dev",
+		"build": "pnpm --dir config run build",
+		"check": "pnpm --dir config run check",
+		"format": "pnpm --dir config run format",
+		"format:check": "pnpm --dir config run format:check",
+		"lint": "pnpm --dir config run lint",
+		"knip": "pnpm --dir config run knip",
+		"test": "pnpm --dir config run test"
+	}
+}

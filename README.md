@@ -43,7 +43,7 @@ pnpm run build
 
 ## Deployment
 
-The Netlify project is [bridgette-scoreboard](https://app.netlify.com/projects/bridgette-scoreboard). It builds from the repository root using `pnpm run build` and publishes `dist/`, as configured in [`netlify.toml`](netlify.toml). Set the two public endpoint variables in Netlify’s build environment after Neon is provisioned. The static site does not need a shared editor secret or serverless function.
+The Netlify project is [bridgette-scoreboard](https://app.netlify.com/projects/bridgette-scoreboard). It uses the minimal root package/workspace adapters to run the canonical package manifest in `config/`, then publishes `dist/`, as configured in [`netlify.toml`](netlify.toml). Set the two public endpoint variables in Netlify’s build environment after Neon is provisioned. The static site does not need a shared editor secret or serverless function.
 
 ## References
 
