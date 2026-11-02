@@ -3,3 +3,6 @@ allowBuilds:
 
 overrides:
   d3-color: 3.1.0
+
+lockfileDir: config
+virtualStoreDir: ../node_modules/.pnpm
