@@ -1,9 +1,1 @@
-{
-	"format_on_save": "on",
-	"formatter": {
-		"external": {
-			"command": "node",
-			"arguments": ["./config/zed-prettier.mjs", "--stdin-filepath", "{buffer_path}"]
-		}
-	}
-}
+../config/zed/settings.json
