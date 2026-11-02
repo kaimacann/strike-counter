@@ -1,13 +1,1 @@
-{
-	"extends": "astro/tsconfigs/strict",
-	"compilerOptions": {
-		"jsx": "react-jsx",
-		"baseUrl": ".",
-		"paths": {
-			"@utils": ["src/lib/utils.ts"],
-			"@components/*": ["src/components/*"],
-			"@ui/*": ["src/components/ui/*"],
-			"@lib/*": ["src/lib/*"]
-		}
-	}
-}
+config/tsconfig.json
