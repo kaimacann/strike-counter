@@ -304,11 +304,25 @@ function ScoreboardContent({ account, signOut }: { account: { id: string; email:
 				{/* strikes*/}
 				<div className='grid gap-x-2'>
 					<p className='col-span-3 mb-2 font-mono text-2xl'>STRIKE</p>
-					<Button variant='secondary-tonal' size='xl' aria-label='Decrease strike count' disabled={!selPitcher || strikes === 1} onClick={() => changeStrikes(-1)}>
+					<Button
+						variant='secondary-tonal'
+						size='xl'
+						className='bg-secondary-1 text-secondary-12 hover:bg-secondary-2'
+						aria-label='Decrease strike count'
+						disabled={!selPitcher || strikes === 1}
+						onClick={() => changeStrikes(-1)}
+					>
 						<CarbonIcon name='subtract' className='text-3xl' />
 					</Button>
 					<p className='flex size-14 items-center justify-center rounded border border-secondary-4 bg-primary-12 font-mono text-2xl text-primary-1'>0{strikes}</p>
-					<Button variant='secondary-tonal' size='xl' aria-label='Increase strike count' disabled={!selPitcher || strikes === 3} onClick={() => changeStrikes(1)}>
+					<Button
+						variant='secondary-tonal'
+						size='xl'
+						className='bg-secondary-1 text-secondary-12 hover:bg-secondary-2'
+						aria-label='Increase strike count'
+						disabled={!selPitcher || strikes === 3}
+						onClick={() => changeStrikes(1)}
+					>
 						<CarbonIcon name='add' className='text-3xl' />
 					</Button>
 				</div>

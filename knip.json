@@ -1,7 +1,7 @@
 {
 	"workspaces": {
 		".": {
-			"entry": ["test/**/*.mjs"],
+			"entry": ["src/pages/**/*.astro", "src/components/**/*.tsx", "src/lib/**/*.ts", "test/**/*.mjs"],
 			"paths": {
 				"@components/*": ["src/components/*"],
 				"@lib/*": ["src/lib/*"],

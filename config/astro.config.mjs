@@ -12,6 +12,11 @@ export default defineConfig({
 	integrations: [__terraErrorBoundaryIntegration(), react()],
 	vite: {
 		css: { postcss: fileURLToPath(new URL('./', import.meta.url)) },
+		ssr: { noExternal: ['@astrojs/react'] },
+		environments: {
+			ssr: { resolve: { noExternal: ['@astrojs/react'] } },
+			prerender: { resolve: { noExternal: ['@astrojs/react'] } },
+		},
 		resolve: {
 			alias: {
 				'@utils': `${src}lib/utils.ts`,
