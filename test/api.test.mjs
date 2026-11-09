@@ -58,7 +58,7 @@ test('account, data, and share failures use Sonner while rendering uses the shar
 	assert.match(scoreboard, /notifyError\('Scoreboard save'/);
 	assert.match(scoreboard, /notifyError\('Scoreboard load'/);
 	assert.match(scoreboard, /notifyError\('Scoreboard share'/);
-	assert.match(boundary, /@terra-symposium\/error-boundaries\/react/);
+	assert.match(boundary, /@terra-symposium\/standards-error-boundaries\/react/);
 	assert.doesNotMatch(gate, /role='alert'/);
 	assert.doesNotMatch(scoreboard, /<Alert|role='alert'/);
 });

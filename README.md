@@ -22,9 +22,9 @@ Scoreboard data and share invitations are stored in Neon Postgres and exposed th
 
 Set these public endpoint URLs in the local `.env` and Netlify’s build environment:
 
-| Variable | Value |
-| --- | --- |
-| `PUBLIC_NEON_AUTH_URL` | The branch’s Neon Auth endpoint URL |
+| Variable                   | Value                                        |
+| -------------------------- | -------------------------------------------- |
+| `PUBLIC_NEON_AUTH_URL`     | The branch’s Neon Auth endpoint URL          |
 | `PUBLIC_NEON_DATA_API_URL` | The branch’s Neon Data API REST endpoint URL |
 
 These URLs are public. Neon Auth issues short-lived JWTs, and Postgres row-level security enforces access. Never expose a database connection string, Neon API key, or password in client code or these public variables. Apply migrations to a temporary Neon branch first and verify owner, invited strikee, and unrelated-account access before production.

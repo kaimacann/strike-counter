@@ -5,15 +5,15 @@ const { title, description = 'A shared community baseball scoreboard.' } = Astro
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang='en'>
 	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="description" content={description} />
-		<meta name="theme-color" content="#fffaf0" />
+		<meta charset='utf-8' />
+		<meta name='viewport' content='width=device-width, initial-scale=1' />
+		<meta name='description' content={description} />
+		<meta name='theme-color' content='#fffaf0' />
 		<title>{title}</title>
 	</head>
-	<body class="min-h-screen bg-primary-1 font-sans text-primary-12 antialiased">
+	<body class='min-h-screen bg-primary-1 font-sans text-primary-12 antialiased'>
 		<slot />
 	</body>
 </html>

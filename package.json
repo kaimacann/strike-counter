@@ -8,11 +8,28 @@
 	"scripts": {
 		"dev": "pnpm --dir config run dev",
 		"build": "pnpm --dir config run build",
-		"check": "pnpm --dir config run check",
+		"check": "astro check --config config/astro.config.mjs --tsconfig config/tsconfig.json",
 		"format": "pnpm --dir config run format",
 		"format:check": "pnpm --dir config run format:check",
 		"lint": "pnpm --dir config run lint",
 		"knip": "pnpm --dir config run knip",
 		"test": "pnpm --dir config run test"
+	},
+	"dependencies": {
+		"@radix-ui/react-select": "^2.2.6",
+		"@radix-ui/react-slot": "^1.2.4",
+		"@terra-symposium/standards-error-boundaries": "^0.1.2",
+		"class-variance-authority": "^0.7.1",
+		"clsx": "^2.1.1",
+		"react": "19.2.7",
+		"sonner": "^2.0.8",
+		"tailwind-merge": "^2.6.0"
+	},
+	"devDependencies": {
+		"@astrojs/check": "^0.9.4",
+		"@types/react": "^19.2.18",
+		"@types/react-dom": "^19.2.18",
+		"astro": "^7.2.8",
+		"typescript": "^5.9.3"
 	}
 }

@@ -127,8 +127,18 @@ const preset: Omit<Config, 'content'> = {
 			gridTemplateColumns: { 20: 'repeat(20, minmax(0, 1fr))' },
 			// Simple 20 row grid
 			gridTemplateRows: { 20: 'repeat(20, minmax(0, 1fr))' },
-			gridColumn: rangeMap(13, 20, n => `span-${n}`, n => `span ${n} / span ${n}`),
-			gridRow: rangeMap(7, 20, n => `span-${n}`, n => `span ${n} / span ${n}`),
+			gridColumn: rangeMap(
+				13,
+				20,
+				n => `span-${n}`,
+				n => `span ${n} / span ${n}`,
+			),
+			gridRow: rangeMap(
+				7,
+				20,
+				n => `span-${n}`,
+				n => `span ${n} / span ${n}`,
+			),
 			// prettier-ignore
 			gridColumnStart: rangeMap(13, 21, n => n, String),
 			// prettier-ignore

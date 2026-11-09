@@ -70,7 +70,8 @@ test('Bridgette illustrations use color-burn blending over the cream canvas', ()
 test('score controls expose names and use the cream and burgundy palette', () => {
 	assert.match(scoreboard, /aria-label='Decrease strike count'/);
 	assert.match(scoreboard, /aria-label='Increase strike count'/);
-	assert.match(scoreboard, /bg-secondary-1 text-secondary-12/);
+	assert.match(scoreboard, /variant='secondary-tonal' size='xl' aria-label='Decrease strike count'/);
+	assert.match(scoreboard, /variant='secondary-tonal' size='xl' aria-label='Increase strike count'/);
 	assert.match(scoreboard, /bg-primary-12[^\n]*text-primary-1/);
 });
 

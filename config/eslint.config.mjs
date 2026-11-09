@@ -20,4 +20,8 @@ export default [
 			'unused-imports/no-unused-vars': ['error', { vars: 'local', varsIgnorePattern: '^_', args: 'all', argsIgnorePattern: '^_', caughtErrors: 'all', caughtErrorsIgnorePattern: '^_' }],
 		},
 	},
+	{
+		files: ['**/*.astro'],
+		languageOptions: { parserOptions: { parser: ts.parser, extraFileExtensions: ['.astro'] } },
+	},
 ];

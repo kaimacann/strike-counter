@@ -1,14 +1,11 @@
 {
-  "entry": [
-    "config/astro.config.mjs",
-    "config/tailwind.config.mjs",
-    ".zed/prettier.mjs",
-    "src/pages/**/*.astro",
-    "test/**/*.mjs",
-    "config/**/*.{js,mjs,cjs,ts}"
-  ],
-  "ignoreExportsUsedInFile": true,
-  "ignoreDependencies": [
-    "prettier"
-  ]
+	"ignoreExportsUsedInFile": true,
+	"workspaces": {
+		".": {
+			"entry": ["src/pages/**/*.astro", "test/**/*.mjs"]
+		},
+		"config": {
+			"entry": ["zed/prettier.mjs"]
+		}
+	}
 }
