@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 const src = fileURLToPath(new URL('../src/', import.meta.url));
 
 export default defineConfig({
+	cacheDir: fileURLToPath(new URL('../.astro/', import.meta.url)),
 	server: { port: 4030, strictPort: true },
 	output: 'static',
 	integrations: [__terraErrorBoundaryIntegration(), react()],

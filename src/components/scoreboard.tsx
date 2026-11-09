@@ -109,7 +109,10 @@ function ScoreboardContent({ account, signOut }: { account: { id: string; email:
 				await neonData<DashboardRec[]>(`scoreboards?id=eq.${encodeURIComponent(dashboardId)}`, {
 					method: 'PATCH',
 					headers: { Prefer: 'return=representation' },
-					body: JSON.stringify({ pitchers: nPitchers, updated_at: new Date().toISOString() }),
+					body: JSON.stringify({
+						pitchers: nPitchers,
+						updated_at: new Date().toISOString(),
+					}),
 				});
 			} catch (caught: unknown) {
 				notifyError('Scoreboard save', caught, 'Failed to sync dashboard.');
@@ -131,7 +134,10 @@ function ScoreboardContent({ account, signOut }: { account: { id: string; email:
 				recs = await neonData<DashboardRec[]>('scoreboards?select=id,owner_id,title,pitchers', {
 					method: 'POST',
 					headers: { Prefer: 'return=representation' },
-					body: JSON.stringify({ title: 'Bridgette’s Strikes', pitchers: DEFAULT_PITCHERS }),
+					body: JSON.stringify({
+						title: 'Bridgette’s Strikes',
+						pitchers: DEFAULT_PITCHERS,
+					}),
 				});
 			}
 			const reqId = new URLSearchParams(window.location.search).get('board');
@@ -157,7 +163,10 @@ function ScoreboardContent({ account, signOut }: { account: { id: string; email:
 				await neonData('scoreboard_shares', {
 					method: 'POST',
 					headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-					body: JSON.stringify({ scoreboard_id: currDashboard.id, strikee_email: email }),
+					body: JSON.stringify({
+						scoreboard_id: currDashboard.id,
+						strikee_email: email,
+					}),
 				});
 				const shareUrl = new URL(`/?board=${encodeURIComponent(currDashboard.id)}`, window.location.origin).toString();
 				await navigator.clipboard?.writeText(shareUrl);

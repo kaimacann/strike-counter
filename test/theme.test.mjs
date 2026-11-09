@@ -7,13 +7,14 @@ REGEX
 const BG_PRIMARY_1_REGEX = /bg-primary-1/;
 const BG_PRIMARY_1_PR_6_REGEX = /bg-primary-1 pr-6/;
 
-const [css, layout, scoreboard, imgTheme, accountGate, marquee] = await Promise.all([
+const [css, layout, scoreboard, imgTheme, accountGate, marquee, variants] = await Promise.all([
 	readFile(new URL('../src/styles.css', import.meta.url), 'utf8'),
 	readFile(new URL('../src/layouts/SiteLayout.astro', import.meta.url), 'utf8'),
 	readFile(new URL('../src/components/scoreboard.tsx', import.meta.url), 'utf8'),
 	readFile(new URL('../src/components/tile.ts', import.meta.url), 'utf8'),
 	readFile(new URL('../src/components/account-gate.tsx', import.meta.url), 'utf8'),
 	readFile(new URL('../src/components/Marquee.tsx', import.meta.url), 'utf8'),
+	readFile(new URL('../src/components/ui/variants.ts', import.meta.url), 'utf8'),
 ]);
 function token(name) {
 	const match = css.match(new RegExp(`--${name}:\\s*(\\d{1,3} \\d{1,3} \\d{1,3})`, 'i'));
@@ -70,8 +71,8 @@ test('Bridgette illustrations use color-burn blending over the cream canvas', ()
 test('score controls expose names and use the cream and burgundy palette', () => {
 	assert.match(scoreboard, /aria-label='Decrease strike count'/);
 	assert.match(scoreboard, /aria-label='Increase strike count'/);
-	assert.match(scoreboard, /variant='secondary-tonal' size='xl' aria-label='Decrease strike count'/);
-	assert.match(scoreboard, /variant='secondary-tonal' size='xl' aria-label='Increase strike count'/);
+	assert.match(scoreboard, /variant='secondary-tonal'/);
+	assert.match(variants, /'secondary-tonal': 'border-transparent bg-secondary-1 text-secondary-12 hover:bg-secondary-2'/);
 	assert.match(scoreboard, /bg-primary-12[^\n]*text-primary-1/);
 });
 

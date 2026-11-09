@@ -85,7 +85,14 @@ export default function AccountGate(): React.JSX.Element {
 
 	return (
 		<>
-			<Toaster position='top-right' richColors toastOptions={{ duration: 8000, classNames: { error: 'toast-error-saturated' } }} />
+			<Toaster
+				position='top-right'
+				richColors
+				toastOptions={{
+					duration: 8000,
+					classNames: { error: 'toast-error-saturated' },
+				}}
+			/>
 			{checking && <div className='grid min-h-screen place-items-center bg-primary-1 text-primary-12'>Loading account…</div>}
 			{!checking && session && <Scoreboard account={{ id: session.user.id, email: session.user.email }} signOut={signOut} />}
 			{!checking && !session && (

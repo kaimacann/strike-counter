@@ -19,7 +19,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({ classN
 					'inline-flex items-center justify-center gap-2 rounded-md border-0 bg-transparent p-0 font-semibold transition-colors disabled:pointer-events-none disabled:opacity-50',
 					ACTION_CLASSES[normalizedVariant],
 				)
-			: cn(BUTTON_VARIANTS({ variant: normalizedVariant, size: normalizeActionSize(size) }), size === 'icon' && 'size-10 p-0');
+			: cn(
+					BUTTON_VARIANTS({
+						variant: normalizedVariant,
+						size: normalizeActionSize(size),
+					}),
+					size === 'icon' && 'size-10 p-0',
+				);
 
 	return <Component ref={ref} className={cn(buttonClasses, className)} {...props} />;
 });

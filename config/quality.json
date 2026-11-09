@@ -1,5 +1,6 @@
 {
 	"$schema": "../node_modules/@terra-symposium/quality/quality.schema.json",
+	"root": "..",
 	"sourceRoots": ["src", "netlify", "test"],
 	"extensions": [".astro", ".js", ".jsx", ".mjs", ".ts", ".tsx"],
 	"aliases": { "@components/": "src/components/", "@lib/": "src/lib/", "@utils": "src/lib/utils" },

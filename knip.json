@@ -1,0 +1,14 @@
+{
+	"workspaces": {
+		".": {
+			"entry": ["test/**/*.mjs"],
+			"paths": {
+				"@components/*": ["src/components/*"],
+				"@lib/*": ["src/lib/*"],
+				"@ui/*": ["src/components/ui/*"],
+				"@utils": ["src/lib/utils.ts"]
+			}
+		},
+		"config": { "entry": ["zed/prettier.mjs"] }
+	}
+}

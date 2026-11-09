@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority';
 
 export type UiColor = 'primary' | 'secondary' | 'gray' | 'destructive';
-export type UiType = 'default' | 'outline' | 'ghost' | 'tonal' | 'saturated' | 'link' | 'underline';
+type UiType = 'default' | 'outline' | 'ghost' | 'tonal' | 'saturated' | 'link' | 'underline';
 export type UiSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 export type ActionVariant = UiColor | `${UiColor}-${Exclude<UiType, 'default' | 'saturated'>}`;
@@ -18,7 +18,7 @@ export const ACTION_CLASSES = {
 	secondary: 'border-transparent bg-yellow-400 text-yellow-950 hover:bg-yellow-500',
 	'secondary-outline': 'border-yellow-600 bg-transparent text-yellow-950 hover:bg-yellow-50',
 	'secondary-ghost': 'border-transparent bg-transparent text-yellow-950 hover:bg-yellow-50',
-	'secondary-tonal': 'border-transparent bg-yellow-100 text-yellow-950 hover:bg-yellow-200',
+	'secondary-tonal': 'border-transparent bg-secondary-1 text-secondary-12 hover:bg-secondary-2',
 	'secondary-link': 'border-transparent bg-transparent text-yellow-800 underline-offset-4 hover:underline',
 	'secondary-underline': 'border-transparent bg-transparent text-yellow-800 underline underline-offset-4 hover:text-yellow-950',
 	gray: 'border-transparent bg-gray-200 text-gray-950 hover:bg-gray-300',
@@ -35,7 +35,7 @@ export const ACTION_CLASSES = {
 	'destructive-underline': 'border-transparent bg-transparent text-rose-800 underline underline-offset-4 hover:text-rose-950',
 } satisfies Record<ActionVariant, string>;
 
-export const CONTROL_CLASSES = {
+const CONTROL_CLASSES = {
 	primary: 'border-gray-300 bg-white text-gray-950 placeholder:text-gray-500 focus-visible:border-cyan-700 focus-visible:ring-cyan-700',
 	'primary-outline': 'border-gray-300 bg-transparent text-gray-950 placeholder:text-gray-500 focus-visible:border-cyan-700 focus-visible:ring-cyan-700',
 	'primary-ghost': 'border-transparent bg-transparent text-gray-950 placeholder:text-gray-500 focus-visible:border-cyan-700 focus-visible:ring-cyan-700',
@@ -54,7 +54,7 @@ export const CONTROL_CLASSES = {
 	'destructive-tonal': 'border-transparent bg-rose-50 text-rose-950 placeholder:text-rose-700/60 focus-visible:border-rose-700 focus-visible:ring-rose-700',
 } satisfies Record<ControlVariant, string>;
 
-export const SURFACE_CLASSES = {
+const SURFACE_CLASSES = {
 	primary: 'border-gray-200 bg-white text-gray-950',
 	'primary-outline': 'border-cyan-700 bg-transparent text-gray-950',
 	'primary-ghost': 'border-transparent bg-transparent text-gray-950',
