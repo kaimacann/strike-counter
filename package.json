@@ -8,6 +8,7 @@
 	"scripts": {
 		"dev": "pnpm --dir config run dev",
 		"build": "pnpm --dir config run build",
+		"quality": "pnpm run format:check && pnpm run lint && pnpm run knip && pnpm run check && pnpm run test && pnpm run build && git diff --check",
 		"check": "astro check --config config/astro.config.mjs --tsconfig config/tsconfig.json",
 		"format": "pnpm --dir config run format",
 		"format:check": "pnpm --dir config run format:check",
