@@ -1,41 +1,37 @@
 import { cva } from 'class-variance-authority';
 
 export type UiColor = 'primary' | 'secondary' | 'gray' | 'destructive';
-type UiType = 'default' | 'outline' | 'ghost' | 'tonal' | 'saturated' | 'link' | 'underline';
+export type UiType = 'default' | 'outline' | 'ghost' | 'tonal' | 'saturated' | 'underline';
 export type UiSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 export type ActionVariant = UiColor | `${UiColor}-${Exclude<UiType, 'default' | 'saturated'>}`;
 export type ControlVariant = UiColor | `${UiColor}-${Extract<UiType, 'outline' | 'ghost' | 'tonal'>}`;
-export type SurfaceVariant = UiColor | `${UiColor}-${Exclude<UiType, 'default' | 'link' | 'underline'>}`;
+export type SurfaceVariant = UiColor | `${UiColor}-${Exclude<UiType, 'default' | 'underline'>}`;
 
 export const ACTION_CLASSES = {
 	primary: 'border-transparent bg-cyan-700 text-white hover:bg-cyan-800',
 	'primary-outline': 'border-cyan-700 bg-transparent text-cyan-900 hover:bg-cyan-50',
 	'primary-ghost': 'border-transparent bg-transparent text-cyan-900 hover:bg-cyan-50',
 	'primary-tonal': 'border-transparent bg-cyan-100 text-cyan-950 hover:bg-cyan-200',
-	'primary-link': 'border-transparent bg-transparent text-cyan-800 underline-offset-4 hover:underline',
 	'primary-underline': 'border-transparent bg-transparent text-cyan-800 underline underline-offset-4 hover:text-cyan-950',
 	secondary: 'border-transparent bg-yellow-400 text-yellow-950 hover:bg-yellow-500',
 	'secondary-outline': 'border-yellow-600 bg-transparent text-yellow-950 hover:bg-yellow-50',
 	'secondary-ghost': 'border-transparent bg-transparent text-yellow-950 hover:bg-yellow-50',
-	'secondary-tonal': 'border-transparent bg-secondary-1 text-secondary-12 hover:bg-secondary-2',
-	'secondary-link': 'border-transparent bg-transparent text-yellow-800 underline-offset-4 hover:underline',
+	'secondary-tonal': 'border-transparent bg-yellow-100 text-yellow-950 hover:bg-yellow-200',
 	'secondary-underline': 'border-transparent bg-transparent text-yellow-800 underline underline-offset-4 hover:text-yellow-950',
 	gray: 'border-transparent bg-gray-200 text-gray-950 hover:bg-gray-300',
 	'gray-outline': 'border-gray-400 bg-transparent text-gray-900 hover:bg-gray-100',
 	'gray-ghost': 'border-transparent bg-transparent text-gray-700 hover:bg-gray-100',
 	'gray-tonal': 'border-transparent bg-gray-100 text-gray-900 hover:bg-gray-200',
-	'gray-link': 'border-transparent bg-transparent text-gray-700 underline-offset-4 hover:underline',
 	'gray-underline': 'border-transparent bg-transparent text-gray-700 underline underline-offset-4 hover:text-gray-950',
 	destructive: 'border-transparent bg-rose-700 text-white hover:bg-rose-800',
 	'destructive-outline': 'border-rose-700 bg-transparent text-rose-800 hover:bg-rose-50',
 	'destructive-ghost': 'border-transparent bg-transparent text-rose-800 hover:bg-rose-50',
 	'destructive-tonal': 'border-transparent bg-rose-100 text-rose-900 hover:bg-rose-200',
-	'destructive-link': 'border-transparent bg-transparent text-rose-800 underline-offset-4 hover:underline',
 	'destructive-underline': 'border-transparent bg-transparent text-rose-800 underline underline-offset-4 hover:text-rose-950',
 } satisfies Record<ActionVariant, string>;
 
-const CONTROL_CLASSES = {
+export const CONTROL_CLASSES = {
 	primary: 'border-gray-300 bg-white text-gray-950 placeholder:text-gray-500 focus-visible:border-cyan-700 focus-visible:ring-cyan-700',
 	'primary-outline': 'border-gray-300 bg-transparent text-gray-950 placeholder:text-gray-500 focus-visible:border-cyan-700 focus-visible:ring-cyan-700',
 	'primary-ghost': 'border-transparent bg-transparent text-gray-950 placeholder:text-gray-500 focus-visible:border-cyan-700 focus-visible:ring-cyan-700',
@@ -54,7 +50,7 @@ const CONTROL_CLASSES = {
 	'destructive-tonal': 'border-transparent bg-rose-50 text-rose-950 placeholder:text-rose-700/60 focus-visible:border-rose-700 focus-visible:ring-rose-700',
 } satisfies Record<ControlVariant, string>;
 
-const SURFACE_CLASSES = {
+export const SURFACE_CLASSES = {
 	primary: 'border-gray-200 bg-white text-gray-950',
 	'primary-outline': 'border-cyan-700 bg-transparent text-gray-950',
 	'primary-ghost': 'border-transparent bg-transparent text-gray-950',
@@ -95,12 +91,11 @@ export const inputAccentClasses: Record<UiColor, string> = { primary: 'accent-cy
 
 export const colorForVariant = (variant: ActionVariant | ControlVariant | SurfaceVariant = 'primary'): UiColor => variant.split('-')[0] as UiColor;
 
-export type LegacyButtonVariant = 'account' | 'inline' | 'outline' | 'tonal-secondary' | 'underline';
+export type LegacyButtonVariant = 'account' | 'outline' | 'tonal-secondary' | 'underline';
 export type LegacyButtonSize = 'default' | 'icon' | 'link';
 
 export const normalizeActionVariant = (variant: ActionVariant | LegacyButtonVariant = 'primary'): ActionVariant => {
 	if (variant === 'account') return 'secondary';
-	if (variant === 'inline') return 'primary-link';
 	if (variant === 'outline') return 'primary-outline';
 	if (variant === 'tonal-secondary') return 'secondary-tonal';
 	if (variant === 'underline') return 'primary-underline';
