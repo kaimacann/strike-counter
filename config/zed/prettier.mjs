@@ -1,4 +1,5 @@
 import prettier from 'prettier';
+import { promisify } from 'node:util';
 import config from '../.prettierrc.mjs';
 
 const filepathIndex = process.argv.indexOf('--stdin-filepath');
@@ -9,16 +10,9 @@ if (!filepath) {
 	process.exit(1);
 }
 
-const source = await new Promise((resolve, reject) => {
-	let input = '';
-	process.stdin.setEncoding('utf8');
-	process.stdin.on('data', chunk => (input += chunk));
-	process.stdin.on('end', () => resolve(input));
-	process.stdin.on('error', reject);
-});
-const formatted = await prettier.format(source, { ...config, filepath });
-
-await new Promise((resolve, reject) => {
-	process.stdout.on('error', reject);
-	process.stdout.write(formatted, error => (error ? reject(error) : resolve()));
-});
+let source = '';
+process.stdin.setEncoding('utf8');
+for await (const chunk of process.stdin) source += chunk;
+const fmt = await prettier.format(source, { ...config, filepath });
+const writeStdout = promisify(process.stdout.write.bind(process.stdout));
+await writeStdout(fmt);

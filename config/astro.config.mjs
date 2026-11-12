@@ -13,17 +13,7 @@ export default defineConfig({
 	vite: {
 		css: { postcss: fileURLToPath(new URL('./', import.meta.url)) },
 		ssr: { noExternal: ['@astrojs/react'] },
-		environments: {
-			ssr: { resolve: { noExternal: ['@astrojs/react'] } },
-			prerender: { resolve: { noExternal: ['@astrojs/react'] } },
-		},
-		resolve: {
-			alias: {
-				'@utils': `${src}lib/utils.ts`,
-				'@components': `${src}components`,
-				'@ui': `${src}components/ui`,
-				'@lib': `${src}lib`,
-			},
-		},
+		environments: { ssr: { resolve: { noExternal: ['@astrojs/react'] } }, prerender: { resolve: { noExternal: ['@astrojs/react'] } } },
+		resolve: { alias: { '@utils': `${src}lib/utils.ts`, '@components': `${src}components`, '@ui': `${src}components/ui`, '@lib': `${src}lib` } },
 	},
 });

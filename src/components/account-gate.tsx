@@ -1,4 +1,4 @@
-import { useEffect, useState, type SubmitEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type SubmitEvent } from 'react';
 import { Toaster } from 'sonner';
 import { notifyError } from '../lib/error-notifications';
 import { getNeonSession, neonAuth, neonIsConfigured } from '../lib/neon';
@@ -32,26 +32,40 @@ export default function AccountGate(): React.JSX.Element {
 	const [password, setPassword] = useState('');
 	const [busy, setBusy] = useState(false);
 
-	useEffect(() => {
+	/** Checks the saved session when the account gate mounts.
+	 * @returns Cleanup that prevents state updates after unmount.
+	 */
+	function checkSession(): () => void {
 		let mounted = true;
-		void getNeonSession()
-			.then(current => {
-				if (mounted) {
-					setSession(current);
-					setChecking(false);
-				}
-			})
-			.catch(caught => {
-				if (mounted) {
-					setChecking(false);
-					notifyError('Account session', caught, 'Unable to check your account session.');
-				}
-			});
-		if (!neonIsConfigured) notifyError('Account setup', new Error('Neon Auth and Data API URLs are not configured.'), 'Account sign-in is not configured.');
-		return () => {
+		/** Applies a loaded session while the account gate is mounted.
+		 * @param current - Session returned by Neon Auth.
+		 */
+		function applySession(current: Awaited<ReturnType<typeof getNeonSession>>): void {
+			if (mounted) {
+				setSession(current);
+				setChecking(false);
+			}
+		}
+		/** Reports a failed session lookup and finishes the loading state.
+		 * @param caught - Session lookup failure.
+		 */
+		function reportSessionErr(caught: unknown): void {
+			if (mounted) {
+				setChecking(false);
+				notifyError('Account session', caught, 'Unable to check your account session.');
+			}
+		}
+		/** Marks the gate unmounted so pending requests cannot update it.
+		 */
+		function stopSessionUpdates(): void {
 			mounted = false;
-		};
-	}, []);
+		}
+
+		void getNeonSession().then(applySession).catch(reportSessionErr);
+		if (!neonIsConfigured) notifyError('Account setup', new Error('Neon Auth and Data API URLs are not configured.'), 'Account sign-in is not configured.');
+		return stopSessionUpdates;
+	}
+	useEffect(checkSession, []);
 
 	/**
 	 * Sends account credentials to Neon Auth and loads the resulting session.
@@ -83,6 +97,35 @@ export default function AccountGate(): React.JSX.Element {
 		}
 	}
 
+	/** Prevents native form navigation while starting an account request.
+	 * @param e - Browser form submit event.
+	 */
+	function handleSubmit(e: SubmitEvent<HTMLFormElement>): void {
+		void submit(e);
+	}
+	/** Copies the displayed name into account creation state.
+	 * @param e - Name input change event.
+	 */
+	function handleNameChange(e: ChangeEvent<HTMLInputElement>): void {
+		setName(e.target.value);
+	}
+	/** Copies the displayed email into sign-in state.
+	 * @param e - Email input change event.
+	 */
+	function handleEmailChange(e: ChangeEvent<HTMLInputElement>): void {
+		setEmail(e.target.value);
+	}
+	/** Copies the entered password into authentication state.
+	 * @param e - Password input change event.
+	 */
+	function handlePasswordChange(e: ChangeEvent<HTMLInputElement>): void {
+		setPassword(e.target.value);
+	}
+	/** Switches between account creation and sign-in forms. */
+	function toggleSignup(): void {
+		setSignup(!signup);
+	}
+
 	return (
 		<>
 			<Toaster
@@ -107,16 +150,16 @@ export default function AccountGate(): React.JSX.Element {
 								Connect Neon Auth and the Data API to enable account sign-in.
 							</p>
 						) : (
-							<form className='grid gap-4' onSubmit={e => void submit(e)}>
+							<form className='grid gap-4' onSubmit={handleSubmit}>
 								{signup && (
 									<label className={GRID_GAP_1_TEXT_SM_CLASS}>
 										Name
-										<Input required autoComplete='name' value={name} onChange={e => setName(e.target.value)} className={BORDER_SECONDARY_5_BG_PRIMARY_1_CLASS} />
+										<Input required autoComplete='name' value={name} onChange={handleNameChange} className={BORDER_SECONDARY_5_BG_PRIMARY_1_CLASS} />
 									</label>
 								)}
 								<label className={GRID_GAP_1_TEXT_SM_CLASS}>
 									Email
-									<Input required type='email' autoComplete='email' value={email} onChange={e => setEmail(e.target.value)} className={BORDER_SECONDARY_5_BG_PRIMARY_1_CLASS} />
+									<Input required type='email' autoComplete='email' value={email} onChange={handleEmailChange} className={BORDER_SECONDARY_5_BG_PRIMARY_1_CLASS} />
 								</label>
 								<label className={GRID_GAP_1_TEXT_SM_CLASS}>
 									Password
@@ -126,14 +169,14 @@ export default function AccountGate(): React.JSX.Element {
 										autoComplete={signup ? 'new-password' : 'current-password'}
 										minLength={8}
 										value={password}
-										onChange={e => setPassword(e.target.value)}
+										onChange={handlePasswordChange}
 										className={BORDER_SECONDARY_5_BG_PRIMARY_1_CLASS}
 									/>
 								</label>
 								<Button variant='secondary' size='lg' disabled={busy}>
 									{busy ? 'Please wait…' : signup ? 'Create account' : 'Sign in'}
 								</Button>
-								<Button type='button' variant='primary-underline' size='link' onClick={() => setSignup(!signup)}>
+								<Button type='button' variant='primary-underline' size='link' onClick={toggleSignup}>
 									{signup ? 'Already have an account? Sign in' : 'Create an account'}
 								</Button>
 							</form>

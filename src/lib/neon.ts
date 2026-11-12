@@ -25,7 +25,12 @@ export async function neonAuth<T>(path: string, body?: Record<string, string>): 
 		headers: body ? { 'Content-Type': 'application/json' } : undefined,
 		body: body ? JSON.stringify(body) : undefined,
 	});
-	const data = (await res.json().catch(() => ({}))) as T & { message?: string; error?: string };
+	let data: T & { message?: string; error?: string };
+	try {
+		data = (await res.json()) as T & { message?: string; error?: string };
+	} catch {
+		data = {} as T & { message?: string; error?: string };
+	}
 	if (!res.ok) throw new Error(data.message ?? data.error ?? 'Account request failed.');
 	return data;
 }
@@ -48,15 +53,18 @@ export async function getNeonSession(): Promise<AuthSession | null> {
 export async function neonData<T>(path: string, init: RequestInit = {}): Promise<T> {
 	if (!dataApiUrl) throw new Error('The scoreboard database is not configured for this site.');
 	const sessionToken = await neonAuth<{ token?: string; accessToken?: string }>('token');
-	if (!sessionToken.token && !sessionToken.accessToken) {
-		throw new Error('The account session could not access the scoreboard database.');
-	}
+	if (!sessionToken.token && !sessionToken.accessToken) throw new Error('The account session could not access the scoreboard database.');
 	const headers = new Headers(init.headers);
 	headers.set('Authorization', `Bearer ${sessionToken.token ?? sessionToken.accessToken}`);
 	headers.set('Accept', 'application/json');
 	if (init.body) headers.set('Content-Type', 'application/json');
 	const res = await fetch(`${dataApiUrl}/${path.replace(SHARED_REGEX, '')}`, { ...init, headers });
-	const data = (await res.json().catch(() => null)) as T | { message?: string; details?: string } | null;
+	let data: T | { message?: string; details?: string } | null;
+	try {
+		data = (await res.json()) as T | { message?: string; details?: string };
+	} catch {
+		data = null;
+	}
 	if (!res.ok) {
 		const failure = data && typeof data === 'object' && 'message' in data ? data.message : null;
 		throw new Error(typeof failure === 'string' ? failure : 'The scoreboard database request failed.');
