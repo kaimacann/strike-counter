@@ -7,6 +7,7 @@
 		"node": ">=22.19.0"
 	},
 	"scripts": {
+		"quality:all": "pnpm run format:check && pnpm run lint && pnpm run knip && node scripts/quality.mjs quality --all && pnpm run check && pnpm run test && pnpm run build",
 		"dev": "pnpm --dir config run dev",
 		"build": "pnpm --dir config run build",
 		"check": "pnpm --dir config run check",
