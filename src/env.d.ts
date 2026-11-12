@@ -1,5 +1,6 @@
 declare module 'react-simple-maps' {
 	import type React from 'react';
+	/** GeoJSON feature fields consumed by the island map and selection dialog. */
 	export type MapGeography = {
 		rsmKey: string;
 		geometry?: { type?: string };

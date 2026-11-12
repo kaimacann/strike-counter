@@ -9,8 +9,8 @@ IMPORTS
 //////////////////////////////////////////////////*/
 
 // API
-import { cn, isNumber, isRec, isString } from '@utils';
-import { useCallback, useEffect, useState } from 'react';
+import { cn } from '@utils';
+import { useEffect, useRef, useState } from 'react';
 
 // COMPONENTS
 import { ErrorBoundary } from '@components/ErrorBoundary';
@@ -24,6 +24,8 @@ import { notifyError } from '../lib/error-notifications';
 
 // DATA
 import { IMG_DARKEN } from '@components/tile';
+import { clampStrikeCount as clamp, coercePitchers as coerce } from '../lib/pitchers';
+import { persistShareAndCopyLink } from '../lib/scoreboard-share';
 
 // TYPES
 import type { PitcherData } from '@lib/types';
@@ -55,23 +57,6 @@ type DashboardRec = {
 HELPERS
 //////////////////////////////////////////////////*/
 
-/** Bounds a strike count to the supported 1–3 range. */
-function clamp(v: number): 1 | 2 | 3 {
-	return Math.max(1, Math.min(3, Math.round(v))) as 1 | 2 | 3;
-}
-
-/** Filters an unknown API value down to valid pitcher records. */
-function coerce(v: unknown): PitcherData[] {
-	return isRec(v) && Array.isArray(v.pitchers)
-		? v.pitchers.flatMap((p: unknown): PitcherData[] => {
-				if (!isRec(p) || !isString(p.id) || !isString(p.name)) return [];
-				const name = p.name.trim();
-				// prettier-ignore
-				return name ? [{ id: p.id, name, strikes: clamp(isNumber(p.strikes) ? p.strikes : 1) }] : [];
-			})
-		: [];
-}
-
 /*//////////////////////////////////////////////////
 COMPONENT
 //////////////////////////////////////////////////*/
@@ -93,41 +78,65 @@ function ScoreboardContent({ account, signOut }: { account: { id: string; email:
 	const [dashboardId, setDashboardId] = useState<string | null>(null);
 	const [strikeeEmail, setStrikeeEmail] = useState('');
 	const [shareMsg, setShareMsg] = useState<string | null>(null);
-	const selPitcher = pitchers.find(p => p.id === selId) ?? null;
+	const flashState = useRef(false);
+	let selPitcher: PitcherData | null = null;
+	for (const pitcher of pitchers) {
+		if (pitcher.id === selId) {
+			selPitcher = pitcher;
+			break;
+		}
+	}
 	const strikes = clamp(selPitcher?.strikes ?? 1);
-	const currDashboard = dashboards.find(board => board.id === dashboardId) ?? null;
-	const commit = useCallback((nPitchers: PitcherData[], nId?: string | null): void => {
-		const sel = (nId && nPitchers.some(p => p.id === nId) && nId) || nPitchers[0]?.id || null;
+	let currDashboard: DashboardRec | null = null;
+	for (const board of dashboards) {
+		if (board.id === dashboardId) {
+			currDashboard = board;
+			break;
+		}
+	}
+	/** Applies a pitcher list and keeps the selected pitcher in that list.
+	 * @param nPitchers - Updated pitcher records to store in component state.
+	 * @param nId - Preferred pitcher identifier when it remains in the updated list.
+	 */
+	function commit(nPitchers: PitcherData[], nId?: string | null): void {
+		let selectedId: string | null = null;
+		if (nId) for (const pitcher of nPitchers) if (pitcher.id === nId) selectedId = nId;
+		const sel = selectedId || nPitchers[0]?.id || null;
 		setPitchers(nPitchers);
 		setSelId(sel);
-	}, []);
+	}
 
-	const persist = useCallback(
-		async (nPitchers: PitcherData[]): Promise<void> => {
-			try {
-				if (!dashboardId) throw new Error('Choose a scoreboard before saving.');
-				await neonData<DashboardRec[]>(`scoreboards?id=eq.${encodeURIComponent(dashboardId)}`, {
-					method: 'PATCH',
-					headers: { Prefer: 'return=representation' },
-					body: JSON.stringify({
-						pitchers: nPitchers,
-						updated_at: new Date().toISOString(),
-					}),
-				});
-			} catch (caught: unknown) {
-				notifyError('Scoreboard save', caught, 'Failed to sync dashboard.');
-			}
-		},
-		[dashboardId, neonData],
-	);
-	const changeStrikes = (amount: -1 | 1): void => {
+	/** Saves the current pitcher list to its selected scoreboard.
+	 * @param nPitchers - Pitcher records to persist to the active scoreboard.
+	 */
+	async function persist(nPitchers: PitcherData[]): Promise<void> {
+		try {
+			if (!dashboardId) throw new Error('Choose a scoreboard before saving.');
+			await neonData<DashboardRec[]>(`scoreboards?id=eq.${encodeURIComponent(dashboardId)}`, {
+				method: 'PATCH',
+				headers: { Prefer: 'return=representation' },
+				body: JSON.stringify({
+					pitchers: nPitchers,
+					updated_at: new Date().toISOString(),
+				}),
+			});
+		} catch (caught: unknown) {
+			notifyError('Scoreboard save', caught, 'Failed to sync dashboard.');
+		}
+	}
+	/** Changes the active pitcher’s strike count and persists the result.
+	 * @param amount - One strike to add or remove from the active pitcher.
+	 */
+	function changeStrikes(amount: -1 | 1): void {
 		if (!selPitcher) return;
-		const n = pitchers.map(p => (p.id === selPitcher.id ? { ...p, strikes: clamp(strikes + amount) } : p));
+		const n: PitcherData[] = [];
+		for (const pitcher of pitchers) n.push(pitcher.id === selPitcher.id ? { ...pitcher, strikes: clamp(strikes + amount) } : pitcher);
 		commit(n, selPitcher.id);
 		void persist(n);
-	};
+	}
 
-	const loadDashboards = useCallback(async (): Promise<void> => {
+	/** Loads account scoreboards, creating the default board when needed. */
+	async function loadDashboards(): Promise<void> {
 		try {
 			let recs = await neonData<DashboardRec[]>('scoreboards?select=id,owner_id,title,pitchers&order=created_at.asc');
 			if (!recs.length) {
@@ -141,25 +150,32 @@ function ScoreboardContent({ account, signOut }: { account: { id: string; email:
 				});
 			}
 			const reqId = new URLSearchParams(window.location.search).get('board');
-			const selected = recs.find(board => board.id === reqId) ?? recs[0];
+			let selected = recs[0];
+			for (const board of recs) if (board.id === reqId) selected = board;
 			if (!selected) throw new Error('No scoreboard is available for this account.');
 			setDashboards(recs);
 			setDashboardId(selected.id);
-			setPitchers(coerce(selected));
-			setSelId(selected.pitchers[0]?.id ?? null);
+			const selectedPitchers = coerce(selected);
+			setPitchers(selectedPitchers);
+			setSelId(selectedPitchers[0]?.id ?? null);
 		} catch (caught: unknown) {
 			notifyError('Scoreboard load', caught, 'Failed to load account scoreboards.');
 		}
-	}, [neonData]);
+	}
 
-	const shareWithStrikee = useCallback(
-		async (e: React.SubmitEvent<HTMLFormElement>): Promise<void> => {
-			e.preventDefault();
-			if (!currDashboard || currDashboard.owner_id !== account.id) return;
-			setShareMsg(null);
-			try {
-				const email = strikeeEmail.trim().toLowerCase();
-				if (email === account.email.toLowerCase()) throw new Error('Choose the strikee’s email address.');
+	/** Grants a strikee access to the owned scoreboard and copies its link.
+	 * @param event - Share form submission to validate and handle.
+	 */
+	async function shareWithStrikee(event: React.SubmitEvent<HTMLFormElement>): Promise<void> {
+		event.preventDefault();
+		if (!currDashboard || currDashboard.owner_id !== account.id) return;
+		setShareMsg(null);
+		try {
+			const email = strikeeEmail.trim().toLowerCase();
+			if (email === account.email.toLowerCase()) throw new Error('Choose the strikee’s email address.');
+			const shareUrl = new URL(`/?board=${encodeURIComponent(currDashboard.id)}`, window.location.origin).toString();
+			/** Stores the invitation before the clipboard step can fail. */
+			async function saveStrikeeInvitation(): Promise<void> {
 				await neonData('scoreboard_shares', {
 					method: 'POST',
 					headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
@@ -168,33 +184,124 @@ function ScoreboardContent({ account, signOut }: { account: { id: string; email:
 						strikee_email: email,
 					}),
 				});
-				const shareUrl = new URL(`/?board=${encodeURIComponent(currDashboard.id)}`, window.location.origin).toString();
-				await navigator.clipboard?.writeText(shareUrl);
-				setShareMsg(`Shared with ${email}. The scoreboard link has been copied.`);
-				setStrikeeEmail('');
-			} catch (caught) {
-				notifyError('Scoreboard share', caught, 'Could not share this scoreboard.');
 			}
-		},
-		[account.email, account.id, currDashboard, neonData, strikeeEmail],
-	);
+			/** Copies the stored invitation URL for the current browser session. */
+			async function copyStrikeeInvitation(): Promise<void> {
+				if (!navigator.clipboard?.writeText) throw new Error('Clipboard writing is unavailable.');
+				await navigator.clipboard.writeText(shareUrl);
+			}
+			const copied = await persistShareAndCopyLink(saveStrikeeInvitation, copyStrikeeInvitation);
+			setShareMsg(copied ? `Shared with ${email}. The scoreboard link has been copied.` : `Shared with ${email}. Copy this link: ${shareUrl}`);
+			setStrikeeEmail('');
+		} catch (caught) {
+			notifyError('Scoreboard share', caught, 'Could not share this scoreboard.');
+		}
+	}
 
-	// EFFECTS
-	useEffect((): void => {
+	/** Starts the initial account scoreboard load when this view mounts. */
+	function loadDashboardsOnMount(): void {
 		void loadDashboards();
-	}, [loadDashboards]);
-	useEffect((): (() => void) | undefined => {
+	}
+	/** Toggles the image flash while the active pitcher has three strikes.
+	 * @returns An interval cleanup callback when flashing starts, or `undefined` otherwise.
+	 */
+	function manageStrikeFlash(): (() => void) | undefined {
 		if (strikes !== 3) {
+			flashState.current = false;
 			setFlash(false);
 			return undefined;
 		}
-		const interval = window.setInterval((): void => {
-			setFlash(curr => !curr);
-		}, 225);
-		return (): void => {
+		/** Flips the flash state for the next interval tick. */
+		function toggleFlash(): void {
+			flashState.current = !flashState.current;
+			setFlash(flashState.current);
+		}
+		const interval = window.setInterval(toggleFlash, 225);
+		/** Clears the interval that toggles the image flash. */
+		function stopFlash(): void {
 			window.clearInterval(interval);
-		};
-	}, [strikes]);
+		}
+		return stopFlash;
+	}
+	/** Signs out the current account when its header control is activated. */
+	function handleSignOut(): void {
+		void signOut();
+	}
+	/** Selects a scoreboard and updates the shareable URL.
+	 * @param i - Identifier of the scoreboard selected in the menu.
+	 */
+	function selectDashboard(i: string): void {
+		let selectedBoard: DashboardRec | undefined;
+		for (const board of dashboards) if (board.id === i) selectedBoard = board;
+		if (!selectedBoard) return;
+		setDashboardId(selectedBoard.id);
+		const selectedPitchers = coerce(selectedBoard);
+		setPitchers(selectedPitchers);
+		setSelId(selectedPitchers[0]?.id ?? null);
+		window.history.replaceState(null, '', `/?board=${encodeURIComponent(selectedBoard.id)}`);
+	}
+	/** Handles selecting, adding, or deleting the active pitcher.
+	 * @param v - Selected pitcher identifier or an add/delete action sentinel.
+	 */
+	function selectPitcher(v: string): void {
+		if (v === ACTION_ADD) {
+			const name = window.prompt('Pitcher name')?.trim();
+			if (!name) return;
+			const next = [...pitchers, { id: crypto.randomUUID(), name, strikes: 1 }];
+			commit(next, next.at(-1)?.id ?? null);
+			void persist(next);
+			return;
+		}
+		if (v === ACTION_DELETE) {
+			if (!selPitcher || !window.confirm(`Delete ${selPitcher.name}?`)) return;
+			const next: PitcherData[] = [];
+			for (const pitcher of pitchers) if (pitcher.id !== selPitcher.id) next.push(pitcher);
+			commit(next);
+			void persist(next);
+			return;
+		}
+		commit(pitchers, v);
+	}
+	/** Updates the controlled strikee email field.
+	 * @param e - Input event containing the latest email value.
+	 */
+	function changeStrikeeEmail(e: React.ChangeEvent<HTMLInputElement>): void {
+		setStrikeeEmail(e.target.value);
+	}
+	/** Submits the current scoreboard share request.
+	 * @param e - Share form submission forwarded to the async handler.
+	 */
+	function submitShare(e: React.FormEvent<HTMLFormElement>): void {
+		void shareWithStrikee(e);
+	}
+	/** Decreases strikes on the active pitcher. */
+	function decreaseStrikes(): void {
+		changeStrikes(-1);
+	}
+	/** Increases strikes on the active pitcher. */
+	function increaseStrikes(): void {
+		changeStrikes(1);
+	}
+	const dashboardOptions: React.ReactNode[] = [];
+	for (const board of dashboards) {
+		dashboardOptions.push(
+			<SelectItem key={board.id} value={board.id}>
+				{board.title}
+				{board.owner_id === account.id ? ' · creator' : ' · shared'}
+			</SelectItem>,
+		);
+	}
+	const pitcherOptions: React.ReactNode[] = [];
+	for (const pitcher of pitchers) {
+		pitcherOptions.push(
+			<SelectItem key={pitcher.id} value={pitcher.id}>
+				{pitcher.name} · 0{clamp(pitcher.strikes)}{' '}
+			</SelectItem>,
+		);
+	}
+	// EFFECTS
+	useEffect(loadDashboardsOnMount, []);
+	useEffect(manageStrikeFlash, [strikes]);
 
 	// RENDER
 	return (
@@ -208,7 +315,7 @@ function ScoreboardContent({ account, signOut }: { account: { id: string; email:
 					</h1>
 					<p className='-mt-2 pl-2 text-xl'>Est. 2026</p>
 					<p className='mt-2 pl-2 text-sm text-secondary-2'>{account.email}</p>
-					<Button type='button' variant='primary-underline' size='link' className='mt-1 pl-2 text-left text-xs text-secondary-2' onClick={() => void signOut()}>
+					<Button type='button' variant='primary-underline' size='link' className='mt-1 pl-2 text-left text-xs text-secondary-2' onClick={handleSignOut}>
 						Sign out
 					</Button>
 				</div>
@@ -218,65 +325,28 @@ function ScoreboardContent({ account, signOut }: { account: { id: string; email:
 					{dashboards.length > 1 && (
 						<label className='mb-2 grid gap-1 text-xs text-secondary-2'>
 							SCOREBOARD
-							<Select
-								value={dashboardId ?? ''}
-								onValueChange={v => {
-									const nBoard = dashboards.find(board => board.id === v);
-									if (!nBoard) return;
-									setDashboardId(nBoard.id);
-									setPitchers(coerce(nBoard));
-									setSelId(nBoard.pitchers[0]?.id ?? null);
-									window.history.replaceState(null, '', `/?board=${encodeURIComponent(nBoard.id)}`);
-								}}
-							>
+							<Select value={dashboardId ?? ''} onValueChange={selectDashboard}>
 								<SelectTrigger className='border-secondary-5 bg-secondary-11 px-2 text-secondary-1' aria-label='Select scoreboard'>
 									<SelectValue />
 								</SelectTrigger>
-								<SelectContent className='border-secondary-5 bg-secondary-11 text-secondary-1'>
-									{dashboards.map(board => (
-										<SelectItem key={board.id} value={board.id}>
-											{board.title}
-											{board.owner_id === account.id ? ' · creator' : ' · shared'}
-										</SelectItem>
-									))}
-								</SelectContent>
+								<SelectContent className='border-secondary-5 bg-secondary-11 text-secondary-1'>{dashboardOptions}</SelectContent>
 							</Select>
 						</label>
 					)}
-					<Select
-						onValueChange={v => {
-							if (v === ACTION_ADD) {
-								const name = window.prompt('Pitcher name')?.trim();
-								if (!name) return;
-								const next = [...pitchers, { id: crypto.randomUUID(), name, strikes: 1 }];
-								commit(next, next.at(-1)?.id ?? null);
-								void persist(next);
-								return;
-							}
-							if (v === ACTION_DELETE) {
-								if (!selPitcher || !window.confirm(`Delete ${selPitcher.name}?`)) return;
-								const next = pitchers.filter(p => p.id !== selPitcher.id);
-								commit(next);
-								void persist(next);
-								return;
-							}
-							commit(pitchers, v);
-						}}
-						value={selId ?? undefined}
-					>
+					<Select onValueChange={selectPitcher} value={selId ?? undefined}>
 						<SelectTrigger className='border-secondary-5 bg-secondary-11 font-mono text-secondary-1 data-[placeholder]:text-secondary-2' aria-label='Select pitcher'>
 							<SelectValue placeholder='Select pitcher' />
 						</SelectTrigger>
 						{/* prettier-ignore */}
 						<SelectContent className='border-secondary-5 bg-primary-1 text-primary-12'>
-							{pitchers.map(p => (<SelectItem key={p.id} value={p.id}>{p.name} · 0{clamp(p.strikes)}{' '}</SelectItem>))}
+							{pitcherOptions}
 							<SelectSeparator />
 							<SelectItem value={ACTION_ADD}>Add pitcher...</SelectItem>
 							<SelectItem disabled={!selPitcher} value={ACTION_DELETE}>{selPitcher ? `Delete ${selPitcher.name}` : 'Delete pitcher'}</SelectItem>
 						</SelectContent>
 					</Select>
 					{currDashboard?.owner_id === account.id && (
-						<form onSubmit={e => void shareWithStrikee(e)} className='mt-3 grid gap-2'>
+						<form onSubmit={submitShare} className='mt-3 grid gap-2'>
 							<label className='grid gap-1 text-xs text-secondary-2' htmlFor='strikee-email'>
 								Share with a strikee
 							</label>
@@ -286,7 +356,7 @@ function ScoreboardContent({ account, signOut }: { account: { id: string; email:
 								required
 								placeholder='strikee@example.com'
 								value={strikeeEmail}
-								onChange={e => setStrikeeEmail(e.target.value)}
+								onChange={changeStrikeeEmail}
 								className='border-secondary-5 bg-secondary-11 text-secondary-1 placeholder:text-secondary-3'
 							/>
 							<Button type='submit' variant='primary-outline' className='border-secondary-5 px-3 text-secondary-1 hover:bg-secondary-11'>
@@ -310,7 +380,7 @@ function ScoreboardContent({ account, signOut }: { account: { id: string; email:
 						className='bg-secondary-1 text-secondary-12 hover:bg-secondary-2'
 						aria-label='Decrease strike count'
 						disabled={!selPitcher || strikes === 1}
-						onClick={() => changeStrikes(-1)}
+						onClick={decreaseStrikes}
 					>
 						<CarbonIcon name='subtract' className='text-3xl' />
 					</Button>
@@ -321,7 +391,7 @@ function ScoreboardContent({ account, signOut }: { account: { id: string; email:
 						className='bg-secondary-1 text-secondary-12 hover:bg-secondary-2'
 						aria-label='Increase strike count'
 						disabled={!selPitcher || strikes === 3}
-						onClick={() => changeStrikes(1)}
+						onClick={increaseStrikes}
 					>
 						<CarbonIcon name='add' className='text-3xl' />
 					</Button>
@@ -356,7 +426,8 @@ function ScoreboardContent({ account, signOut }: { account: { id: string; email:
 /**
  * Renders the Bridgette controls and image board.
  *
- * @param props Signed-in account details and the sign-out callback.
+ * @param account - Signed-in account whose scoreboards are available here.
+ * @param signOut - Callback that ends the current account session.
  * @returns A JSX element representing the strike tracker wrapped in an ErrorBoundary.
  */
 export default function Scoreboard({ account, signOut }: { account: { id: string; email: string }; signOut: () => Promise<void> }): React.JSX.Element {

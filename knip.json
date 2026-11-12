@@ -1,7 +1,7 @@
 {
 	"workspaces": {
 		".": {
-			"entry": ["src/pages/**/*.astro", "src/components/**/*.tsx", "src/lib/**/*.ts", "test/**/*.mjs"],
+			"entry": ["src/pages/**/*.astro", "test/**/*.mjs"],
 			"paths": {
 				"@components/*": ["src/components/*"],
 				"@lib/*": ["src/lib/*"],
@@ -9,6 +9,6 @@
 				"@utils": ["src/lib/utils.ts"]
 			}
 		},
-		"config": { "entry": ["zed/prettier.mjs"] }
+		"config": { "entry": ["*.config.mjs", "zed/*.mjs"] }
 	}
 }

@@ -4,7 +4,12 @@ import { cn } from '@utils';
 /**
  * Renders a repeating, screen-reader-friendly marquee for three strikes.
  *
- * @param props - Optional repeated terms or custom children plus motion, row, and accessibility settings for the marquee.
+ * @param terms - Text terms announced once to assistive technology.
+ * @param children - Custom marquee content repeated across each track.
+ * @param className - Additional classes for the viewport.
+ * @param duration - Duration of one animation cycle in milliseconds.
+ * @param reverse - Whether the track runs in reverse.
+ * @param ariaHidden - Whether to hide the whole marquee from assistive technology.
  * @returns The measured marquee viewport and its duplicated animated content.
  */
 export default function Marquee({
@@ -27,34 +32,57 @@ export default function Marquee({
 	const sampleRef = useRef<HTMLSpanElement>(null);
 	const [copies, setCopies] = useState(2);
 
-	useEffect(() => {
-		const measure = () => {
+	/** Keeps enough repeated content to cover the measured viewport.
+	 * @returns Cleanup that disconnects the measurement observer.
+	 */
+	function observeMarquee(): () => void {
+		/** Measures both elements before changing the repeated content count. */
+		function measure(): void {
 			const viewportWidth = viewportRef.current?.clientWidth ?? 0;
 			const itemWidth = sampleRef.current?.getBoundingClientRect().width ?? 0;
 			if (viewportWidth === 0 || itemWidth === 0) return;
 
 			// Fill the visible viewport before duplicating the group for a seamless loop.
 			const nCopies = Math.max(2, Math.ceil(viewportWidth / itemWidth) + 1);
-			setCopies(current => (current === nCopies ? current : nCopies));
-		};
+			setCopies(nCopies);
+		}
 
 		measure();
 		const observer = new ResizeObserver(measure);
 		if (viewportRef.current) observer.observe(viewportRef.current);
 		if (sampleRef.current) observer.observe(sampleRef.current);
-		return () => observer.disconnect();
-	}, [content]);
+		/** Releases the observer when the measured content changes or unmounts. */
+		function disconnectObserver(): void {
+			observer.disconnect();
+		}
+		return disconnectObserver;
+	}
+	useEffect(observeMarquee, [content]);
 
-	const renderGroup = (group: number) => (
-		<div className='marquee-group' key={group}>
-			{Array.from({ length: copies }, (_, i) => (
+	/** Renders one repeated group with the measured number of content copies.
+	 * @param group - Group index used for the React key.
+	 * @returns The repeated content group.
+	 */
+	function renderGroup(group: number): React.JSX.Element {
+		/** Renders one item and its spacer in a repeated marquee group.
+		 * @param _unused - Array.from's placeholder value.
+		 * @param i - Item index used for the fragment key.
+		 * @returns The repeated text and gap.
+		 */
+		function renderItem(_unused: undefined, i: number): React.JSX.Element {
+			return (
 				<React.Fragment key={i}>
 					<span className='marquee-item'>{content}</span>
 					<span className='marquee-gap' aria-hidden='true' />
 				</React.Fragment>
-			))}
-		</div>
-	);
+			);
+		}
+		return (
+			<div className='marquee-group' key={group}>
+				{Array.from({ length: copies }, renderItem)}
+			</div>
+		);
+	}
 
 	return (
 		<div ref={viewportRef} className={cn('marquee-viewport relative overflow-hidden whitespace-nowrap', className)} aria-hidden={ariaHidden || undefined}>

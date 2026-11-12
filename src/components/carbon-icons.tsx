@@ -25,22 +25,28 @@ const ICON_PATHS = {
 
 /**
  * Renders a Carbon Design System icon from the extracted dashboard icon set.
- * @param props SVG attributes and the icon name to render.
+ * @param name - Icon key from the extracted dashboard icon set.
+ * @param attrs - SVG attributes forwarded to the icon element.
  * @returns The requested SVG icon.
  */
 export function CarbonIcon({
 	name,
-	...props
+	...attrs
 }: SVGProps<SVGSVGElement> & {
 	name: keyof typeof ICON_PATHS;
 }): React.JSX.Element {
 	return (
-		<svg viewBox='0 0 32 32' aria-hidden='true' focusable='false' {...props}>
-			<g fill='currentColor'>
-				{ICON_PATHS[name].map((d, i) => (
-					<path d={d} key={i} />
-				))}
-			</g>
+		<svg viewBox='0 0 32 32' aria-hidden='true' focusable='false' {...attrs}>
+			<g fill='currentColor'>{ICON_PATHS[name].map(renderIconPath)}</g>
 		</svg>
 	);
+}
+
+/** Renders one SVG path from a Carbon icon definition.
+ * @param p - SVG path data.
+ * @param i - Path position in the icon's ordered path list.
+ * @returns A keyed SVG path element.
+ */
+function renderIconPath(p: string, i: number): React.JSX.Element {
+	return <path d={p} key={i} />;
 }
