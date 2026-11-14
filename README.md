@@ -32,18 +32,18 @@ These URLs are public. Neon Auth issues short-lived JWTs, and Postgres row-level
 ## Checks
 
 ```sh
-pnpm check
+pnpm quality:all
 pnpm run test
 pnpm run build
 ```
 
 ## Structure
 
-`src/` contains the Astro app, scoreboard, and account gate. `migrations/` defines tables and access policies; `test/` covers API and theme behavior.
+`src/` contains the Astro app, scoreboard, and account gate. `migrations/` defines tables and access policies; `tests/` covers API and theme behavior.
 
 ## Deployment
 
-The Netlify project is [bridgette-scoreboard](https://app.netlify.com/projects/bridgette-scoreboard). It uses the minimal root package/workspace adapters to run the canonical package manifest in `config/`, then publishes `dist/`, as configured in [`netlify.toml`](netlify.toml). Set the two public endpoint variables in Netlify’s build environment after Neon is provisioned. The static site does not need a shared editor secret or serverless function.
+The Netlify project is [bridgette-scoreboard](https://app.netlify.com/projects/bridgette-scoreboard). It uses the minimal root package/workspace adapters to run the canonical package manifest in `config/`, then publishes `dist/site/`, as configured in [`netlify.toml`](netlify.toml). Build caches and Astro-generated types live under `dist/cache/`. Set the two public endpoint variables in Netlify’s build environment after Neon is provisioned. The static site does not need a shared editor secret or serverless function.
 
 ## References
 

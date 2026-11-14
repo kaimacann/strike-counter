@@ -1,4 +1,4 @@
-import { useEffect, useState, type SubmitEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type SubmitEvent } from 'react';
 import { Toaster } from 'sonner';
 import { notifyError } from '../lib/error-notifications';
 import { getNeonSession, neonAuth, neonIsConfigured } from '../lib/neon';
@@ -32,16 +32,17 @@ export default function AccountGate(): React.JSX.Element {
 	const [password, setPassword] = useState('');
 	const [busy, setBusy] = useState(false);
 
-	useEffect(() => {
+	// Check the saved session on mount and prevent updates after unmount.
+	useEffect((): (() => void) => {
 		let mounted = true;
 		void getNeonSession()
-			.then(current => {
+			.then((current: Awaited<ReturnType<typeof getNeonSession>>) => {
 				if (mounted) {
 					setSession(current);
 					setChecking(false);
 				}
 			})
-			.catch(caught => {
+			.catch((caught: unknown) => {
 				if (mounted) {
 					setChecking(false);
 					notifyError('Account session', caught, 'Unable to check your account session.');
@@ -52,36 +53,6 @@ export default function AccountGate(): React.JSX.Element {
 			mounted = false;
 		};
 	}, []);
-
-	/**
-	 * Sends account credentials to Neon Auth and loads the resulting session.
-	 *
-	 * @param e - Browser form submission whose default navigation is prevented while authentication runs.
-	 */
-	async function submit(e: SubmitEvent<HTMLFormElement>): Promise<void> {
-		e.preventDefault();
-		setBusy(true);
-		try {
-			await neonAuth(signup ? 'sign-up/email' : 'sign-in/email', signup ? { name: name.trim(), email: email.trim(), password } : { email: email.trim(), password });
-			const curr = await getNeonSession();
-			if (!curr) throw new Error('Sign-in succeeded but the account session could not be loaded. Check the trusted domain in Neon Auth.');
-			setSession(curr);
-		} catch (caught) {
-			notifyError('Account sign-in', caught, 'Account request failed.');
-		} finally {
-			setBusy(false);
-		}
-	}
-
-	/** Ends the current Neon Auth session and returns to the sign-in form. */
-	async function signOut(): Promise<void> {
-		try {
-			await neonAuth('sign-out', {});
-			setSession(null);
-		} catch (caught) {
-			notifyError('Account sign-out', caught, 'Could not sign out.');
-		}
-	}
 
 	return (
 		<>
@@ -94,7 +65,19 @@ export default function AccountGate(): React.JSX.Element {
 				}}
 			/>
 			{checking && <div className='grid min-h-screen place-items-center bg-primary-1 text-primary-12'>Loading account…</div>}
-			{!checking && session && <Scoreboard account={{ id: session.user.id, email: session.user.email }} signOut={signOut} />}
+			{!checking && session && (
+				<Scoreboard
+					account={{ id: session.user.id, email: session.user.email }}
+					signOut={async () => {
+						try {
+							await neonAuth('sign-out', {});
+							setSession(null);
+						} catch (caught) {
+							notifyError('Account sign-out', caught, 'Could not sign out.');
+						}
+					}}
+				/>
+			)}
 			{!checking && !session && (
 				<main className='grid min-h-screen place-items-center bg-primary-1 p-6 text-primary-12'>
 					<section className='w-full max-w-md rounded-lg border border-secondary-5 bg-primary-2 p-8 shadow-sm'>
@@ -107,16 +90,41 @@ export default function AccountGate(): React.JSX.Element {
 								Connect Neon Auth and the Data API to enable account sign-in.
 							</p>
 						) : (
-							<form className='grid gap-4' onSubmit={e => void submit(e)}>
+							<form
+								className='grid gap-4'
+								onSubmit={(e: SubmitEvent<HTMLFormElement>): void => {
+									void (async (): Promise<void> => {
+										e.preventDefault();
+										setBusy(true);
+										try {
+											await neonAuth(signup ? 'sign-up/email' : 'sign-in/email', signup ? { name: name.trim(), email: email.trim(), password } : { email: email.trim(), password });
+											const curr = await getNeonSession();
+											if (!curr) throw new Error('Sign-in succeeded but the account session could not be loaded. Check the trusted domain in Neon Auth.');
+											setSession(curr);
+										} catch (caught) {
+											notifyError('Account sign-in', caught, 'Account request failed.');
+										} finally {
+											setBusy(false);
+										}
+									})();
+								}}
+							>
 								{signup && (
 									<label className={GRID_GAP_1_TEXT_SM_CLASS}>
 										Name
-										<Input required autoComplete='name' value={name} onChange={e => setName(e.target.value)} className={BORDER_SECONDARY_5_BG_PRIMARY_1_CLASS} />
+										<Input required autoComplete='name' value={name} onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)} className={BORDER_SECONDARY_5_BG_PRIMARY_1_CLASS} />
 									</label>
 								)}
 								<label className={GRID_GAP_1_TEXT_SM_CLASS}>
 									Email
-									<Input required type='email' autoComplete='email' value={email} onChange={e => setEmail(e.target.value)} className={BORDER_SECONDARY_5_BG_PRIMARY_1_CLASS} />
+									<Input
+										required
+										type='email'
+										autoComplete='email'
+										value={email}
+										onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+										className={BORDER_SECONDARY_5_BG_PRIMARY_1_CLASS}
+									/>
 								</label>
 								<label className={GRID_GAP_1_TEXT_SM_CLASS}>
 									Password
@@ -126,7 +134,7 @@ export default function AccountGate(): React.JSX.Element {
 										autoComplete={signup ? 'new-password' : 'current-password'}
 										minLength={8}
 										value={password}
-										onChange={e => setPassword(e.target.value)}
+										onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
 										className={BORDER_SECONDARY_5_BG_PRIMARY_1_CLASS}
 									/>
 								</label>

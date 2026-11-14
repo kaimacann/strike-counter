@@ -8,16 +8,15 @@
 		"node": ">=22.19.0"
 	},
 	"scripts": {
-		"dev": "cd .. && astro dev --config config/astro.config.mjs",
-		"build": "cd .. && astro build --config config/astro.config.mjs",
+		"quality": "node \"$(git rev-parse --show-toplevel)/scripts/quality-runner.mjs\" quality",
+		"quality:all": "node \"$(git rev-parse --show-toplevel)/scripts/quality-runner.mjs\" quality --all",
+		"dev": "cd .. && mkdir -p dist/cache/astro-types && astro dev --config config/astro.config.mjs",
+		"build": "cd .. && mkdir -p dist/cache/astro-types && astro build --config config/astro.config.mjs",
 		"check": "cd .. && astro check --config config/astro.config.mjs --tsconfig config/tsconfig.json",
-		"format": "cd .. && prettier --config config/.prettierrc.mjs --ignore-path config/.prettierignore --write .",
-		"format:check": "cd .. && prettier --config config/.prettierrc.mjs --ignore-path config/.prettierignore --check .",
-		"lint": "cd .. && eslint --config config/eslint.config.mjs .",
-		"knip": "cd .. && knip --config knip.json",
-		"test": "cd .. && node --test test/*.test.mjs"
+		"test": "cd .. && mkdir -p tests/results && node --test --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=tests/results/junit.xml tests/*.test.mjs"
 	},
 	"devDependencies": {
-		"prettier": "^3.9.6"
+		"prettier": "^3.9.6",
+		"prettier-plugin-astro": "1.1.1"
 	}
 }

@@ -1,14 +1,101 @@
 {
-	"$schema": "../node_modules/@terra-symposium/quality/quality.schema.json",
-	"root": "..",
-	"sourceRoots": ["src", "test"],
-	"extensions": [".astro", ".js", ".jsx", ".mjs", ".ts", ".tsx"],
-	"aliases": { "@components/": "src/components/", "@lib/": "src/lib/", "@ui/": "src/components/ui/", "@utils": "src/lib/utils" },
+	"$schema": "../node_modules/@terra-symposium/standards-quality/quality.schema.json",
+	"root": ".",
+	"sourceRoots": ["."],
+	"extensions": [
+		".astro",
+		".c",
+		".cjs",
+		".cpp",
+		".cts",
+		".css",
+		".h",
+		".html",
+		".java",
+		".js",
+		".jsx",
+		".json",
+		".jsonc",
+		".md",
+		".mdx",
+		".mjs",
+		".mts",
+		".py",
+		".pyi",
+		".rs",
+		".sh",
+		".sql",
+		".toml",
+		".ts",
+		".tsx",
+		".yaml",
+		".yml"
+	],
+	"aliases": {
+		"@components/": "src/components/",
+		"@lib/": "src/lib/",
+		"@ui/": "src/components/ui/",
+		"@utils": "src/lib/utils"
+	},
 	"tsconfig": "config/tsconfig.json",
-	"tools": { "eslint": "eslint", "knip": "node_modules/.bin/knip", "prettier": "prettier", "tsc": "tsc" },
-	"autofix": { "document": false, "knip": false, "lint": false, "name": true },
-	"singleUse": { "skippedDirectories": ["src/components", "src/lib/neon.ts"] },
-	"documentation": { "required": { "exportedFunctions": true } },
-	"repeatedClasses": { "minimumCount": 3 },
-	"regexDedup": { "minimumCount": 2 }
+	"tools": {
+		"eslint": "node_modules/.bin/eslint",
+		"knip": "node_modules/.bin/knip",
+		"prettier": "prettier",
+		"tsc": "tsc"
+	},
+	"autofix": {
+		"document": false
+	},
+	"documentation": {
+		"required": {
+			"types": true,
+			"functions": true,
+			"exportedFunctions": true
+		}
+	},
+	"repeatedClasses": {
+		"minimumCount": 3
+	},
+	"regexDedup": {
+		"minimumCount": 2
+	},
+	"enabledChecks": {
+		"error-boundaries": true,
+		"document": true,
+		"format": true,
+		"import": true,
+		"name": true,
+		"forward": true,
+		"accessibility": true,
+		"display-name": true,
+		"performance-patterns": true,
+		"documented-commands": true,
+		"lint": true,
+		"knip": true,
+		"dead-code": true,
+		"type": true,
+		"recommend": true,
+		"command": true,
+		"diff": true,
+		"alias": true,
+		"security": true,
+		"repeated-classes": true,
+		"tailwind-canonical": true,
+		"regex-dedup": true,
+		"ui-patterns": true,
+		"ui-recommendations": true,
+		"github": true
+	},
+	"security": {
+		"clientRoots": ["src/components", "src/lib"]
+	},
+	"languageProfiles": ["c", "java", "python"],
+	"qualityCommands": [
+		{
+			"name": "Astro type check",
+			"command": "pnpm",
+			"args": ["exec", "astro", "check", "--config", "config/astro.config.mjs", "--tsconfig", "config/tsconfig.json"]
+		}
+	]
 }

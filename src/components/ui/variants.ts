@@ -1,41 +1,44 @@
 import { cva } from 'class-variance-authority';
 
+/** Semantic color families supported by scoreboard controls. */
 export type UiColor = 'primary' | 'secondary' | 'gray' | 'destructive';
-type UiType = 'default' | 'outline' | 'ghost' | 'tonal' | 'saturated' | 'link' | 'underline';
+/** Treatments available within an action or surface family. */
+export type UiType = 'default' | 'outline' | 'ghost' | 'tonal' | 'saturated' | 'underline';
+/** Supported control dimensions from compact to prominent. */
 export type UiSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
+/** Valid style keys for buttons and links. */
 export type ActionVariant = UiColor | `${UiColor}-${Exclude<UiType, 'default' | 'saturated'>}`;
+/** Valid style keys for inputs and other interactive controls. */
 export type ControlVariant = UiColor | `${UiColor}-${Extract<UiType, 'outline' | 'ghost' | 'tonal'>}`;
-export type SurfaceVariant = UiColor | `${UiColor}-${Exclude<UiType, 'default' | 'link' | 'underline'>}`;
+/** Valid style keys for non-interactive content surfaces. */
+export type SurfaceVariant = UiColor | `${UiColor}-${Exclude<UiType, 'default' | 'underline'>}`;
 
 export const ACTION_CLASSES = {
 	primary: 'border-transparent bg-cyan-700 text-white hover:bg-cyan-800',
 	'primary-outline': 'border-cyan-700 bg-transparent text-cyan-900 hover:bg-cyan-50',
 	'primary-ghost': 'border-transparent bg-transparent text-cyan-900 hover:bg-cyan-50',
 	'primary-tonal': 'border-transparent bg-cyan-100 text-cyan-950 hover:bg-cyan-200',
-	'primary-link': 'border-transparent bg-transparent text-cyan-800 underline-offset-4 hover:underline',
 	'primary-underline': 'border-transparent bg-transparent text-cyan-800 underline underline-offset-4 hover:text-cyan-950',
 	secondary: 'border-transparent bg-yellow-400 text-yellow-950 hover:bg-yellow-500',
 	'secondary-outline': 'border-yellow-600 bg-transparent text-yellow-950 hover:bg-yellow-50',
 	'secondary-ghost': 'border-transparent bg-transparent text-yellow-950 hover:bg-yellow-50',
 	'secondary-tonal': 'border-transparent bg-secondary-1 text-secondary-12 hover:bg-secondary-2',
-	'secondary-link': 'border-transparent bg-transparent text-yellow-800 underline-offset-4 hover:underline',
 	'secondary-underline': 'border-transparent bg-transparent text-yellow-800 underline underline-offset-4 hover:text-yellow-950',
 	gray: 'border-transparent bg-gray-200 text-gray-950 hover:bg-gray-300',
 	'gray-outline': 'border-gray-400 bg-transparent text-gray-900 hover:bg-gray-100',
 	'gray-ghost': 'border-transparent bg-transparent text-gray-700 hover:bg-gray-100',
 	'gray-tonal': 'border-transparent bg-gray-100 text-gray-900 hover:bg-gray-200',
-	'gray-link': 'border-transparent bg-transparent text-gray-700 underline-offset-4 hover:underline',
 	'gray-underline': 'border-transparent bg-transparent text-gray-700 underline underline-offset-4 hover:text-gray-950',
 	destructive: 'border-transparent bg-rose-700 text-white hover:bg-rose-800',
 	'destructive-outline': 'border-rose-700 bg-transparent text-rose-800 hover:bg-rose-50',
 	'destructive-ghost': 'border-transparent bg-transparent text-rose-800 hover:bg-rose-50',
 	'destructive-tonal': 'border-transparent bg-rose-100 text-rose-900 hover:bg-rose-200',
-	'destructive-link': 'border-transparent bg-transparent text-rose-800 underline-offset-4 hover:underline',
 	'destructive-underline': 'border-transparent bg-transparent text-rose-800 underline underline-offset-4 hover:text-rose-950',
 } satisfies Record<ActionVariant, string>;
 
-const CONTROL_CLASSES = {
+// terra-quality-ignore single-use -- Exported palette map is part of the UI variant API.
+export const CONTROL_CLASSES = {
 	primary: 'border-gray-300 bg-white text-gray-950 placeholder:text-gray-500 focus-visible:border-cyan-700 focus-visible:ring-cyan-700',
 	'primary-outline': 'border-gray-300 bg-transparent text-gray-950 placeholder:text-gray-500 focus-visible:border-cyan-700 focus-visible:ring-cyan-700',
 	'primary-ghost': 'border-transparent bg-transparent text-gray-950 placeholder:text-gray-500 focus-visible:border-cyan-700 focus-visible:ring-cyan-700',
@@ -54,7 +57,8 @@ const CONTROL_CLASSES = {
 	'destructive-tonal': 'border-transparent bg-rose-50 text-rose-950 placeholder:text-rose-700/60 focus-visible:border-rose-700 focus-visible:ring-rose-700',
 } satisfies Record<ControlVariant, string>;
 
-const SURFACE_CLASSES = {
+// terra-quality-ignore single-use -- Exported surface map is part of the UI variant API.
+export const SURFACE_CLASSES = {
 	primary: 'border-gray-200 bg-white text-gray-950',
 	'primary-outline': 'border-cyan-700 bg-transparent text-gray-950',
 	'primary-ghost': 'border-transparent bg-transparent text-gray-950',
@@ -77,39 +81,78 @@ const SURFACE_CLASSES = {
 	'destructive-saturated': 'border-transparent bg-rose-800 text-white',
 } satisfies Record<SurfaceVariant, string>;
 
-const ACTION_SIZES: Record<UiSize, string> = { xs: 'h-7 gap-1 px-2 text-xs', sm: 'h-9 px-3 text-sm', md: 'h-10 px-4 py-2 text-sm', lg: 'h-11 px-5 py-2.5 text-sm', xl: 'h-12 px-6 py-3 text-base' };
-
-const CONTROL_SIZES: Record<UiSize, string> = { xs: 'h-7 px-2 text-xs', sm: 'h-9 px-3 text-sm', md: 'h-10 px-3 text-sm', lg: 'h-11 px-4 text-base', xl: 'h-12 px-4 text-base' };
-
+// terra-quality-ignore single-use -- Exported CVA factory remains available to UI consumers.
 export const BUTTON_VARIANTS = cva(
 	'inline-flex items-center justify-center gap-2 rounded-md border font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-	{ variants: { variant: ACTION_CLASSES, size: ACTION_SIZES }, defaultVariants: { variant: 'primary', size: 'md' } },
+	{
+		variants: {
+			variant: ACTION_CLASSES,
+			size: { xs: 'h-7 gap-1 px-2 text-xs', sm: 'h-9 px-3 text-sm', md: 'h-10 px-4 py-2 text-sm', lg: 'h-11 px-5 py-2.5 text-sm', xl: 'h-12 px-6 py-3 text-base' } satisfies Record<UiSize, string>,
+		},
+		defaultVariants: { variant: 'primary', size: 'md' },
+	},
 );
 
-export const controlClasses = (variant: ControlVariant = 'primary', size: UiSize = 'md') =>
-	['w-full rounded-md border outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60', CONTROL_CLASSES[variant], CONTROL_SIZES[size]].join(' ');
+/** Builds width, state, visual, and size classes for an input-like control.
+ * @param variant - Semantic control treatment.
+ * @param size - Control height and spacing preset.
+ * @returns Tailwind classes for the complete control.
+ */
+export function controlClasses(variant: ControlVariant = 'primary', size: UiSize = 'md'): string {
+	return [
+		'w-full rounded-md border outline-none focus-visible:ring-2 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60',
+		CONTROL_CLASSES[variant],
+		({ xs: 'h-7 px-2 text-xs', sm: 'h-9 px-3 text-sm', md: 'h-10 px-3 text-sm', lg: 'h-11 px-4 text-base', xl: 'h-12 px-4 text-base' } satisfies Record<UiSize, string>)[size],
+	].join(' ');
+}
 
-export const surfaceClasses = (variant: SurfaceVariant = 'gray') => ['rounded-md border', SURFACE_CLASSES[variant]].join(' ');
+// terra-quality-ignore single-use -- Exported class builder is available to other UI consumers.
+/** Builds the border and palette classes for a content surface.
+ * @param variant - Semantic surface treatment.
+ * @returns Tailwind classes for the selected surface.
+ */
+export function surfaceClasses(variant: SurfaceVariant = 'gray'): string {
+	return ['rounded-md border', SURFACE_CLASSES[variant]].join(' ');
+}
 
+// terra-quality-ignore single-use -- Exported input accent map remains available to UI consumers.
 export const inputAccentClasses: Record<UiColor, string> = { primary: 'accent-cyan-700', secondary: 'accent-yellow-600', gray: 'accent-gray-600', destructive: 'accent-rose-700' };
 
-export const colorForVariant = (variant: ActionVariant | ControlVariant | SurfaceVariant = 'primary'): UiColor => variant.split('-')[0] as UiColor;
+// terra-quality-ignore single-use -- Exported variant parser is part of the UI variant API.
+/** Reads the color family from an action, control, or surface key.
+ * @param variant - Full semantic variant key.
+ * @returns The primary color-family segment.
+ */
+export function colorForVariant(variant: ActionVariant | ControlVariant | SurfaceVariant = 'primary'): UiColor {
+	return variant.split('-')[0] as UiColor;
+}
 
-export type LegacyButtonVariant = 'account' | 'inline' | 'outline' | 'tonal-secondary' | 'underline';
+/** Legacy button variant names accepted at compatibility boundaries. */
+export type LegacyButtonVariant = 'account' | 'outline' | 'tonal-secondary' | 'underline';
+/** Legacy size names accepted at compatibility boundaries. */
 export type LegacyButtonSize = 'default' | 'icon' | 'link';
 
-export const normalizeActionVariant = (variant: ActionVariant | LegacyButtonVariant = 'primary'): ActionVariant => {
+// terra-quality-ignore single-use -- Exported compatibility mapper preserves the button API.
+/** Maps old button treatments onto the current semantic action names.
+ * @param variant - Current or legacy action treatment.
+ * @returns A valid current action variant.
+ */
+export function normalizeActionVariant(variant: ActionVariant | LegacyButtonVariant = 'primary'): ActionVariant {
 	if (variant === 'account') return 'secondary';
-	if (variant === 'inline') return 'primary-link';
 	if (variant === 'outline') return 'primary-outline';
 	if (variant === 'tonal-secondary') return 'secondary-tonal';
 	if (variant === 'underline') return 'primary-underline';
 	return variant;
-};
+}
 
-export const normalizeActionSize = (size: UiSize | LegacyButtonSize = 'md'): UiSize => {
+// terra-quality-ignore single-use -- Exported compatibility mapper preserves the button API.
+/** Maps old button dimensions onto the current compact-to-prominent scale.
+ * @param size - Current or legacy button size.
+ * @returns A valid current UI size.
+ */
+export function normalizeActionSize(size: UiSize | LegacyButtonSize = 'md'): UiSize {
 	if (size === 'default') return 'md';
 	if (size === 'icon') return 'sm';
 	if (size === 'link') return 'xs';
 	return size;
-};
+}

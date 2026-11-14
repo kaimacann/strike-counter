@@ -1,1 +1,1 @@
-export type PitcherData = { id: string; name: string; strikes: number };
+export type { PitcherData } from './pitchers';

@@ -6,24 +6,16 @@ import { fileURLToPath } from 'node:url';
 const src = fileURLToPath(new URL('../src/', import.meta.url));
 
 export default defineConfig({
-	cacheDir: fileURLToPath(new URL('../.astro/', import.meta.url)),
+	outDir: fileURLToPath(new URL('../dist/site/', import.meta.url)),
+	cacheDir: fileURLToPath(new URL('../dist/cache/astro/', import.meta.url)),
 	server: { port: 4030, strictPort: true },
 	output: 'static',
 	integrations: [__terraErrorBoundaryIntegration(), react()],
 	vite: {
+		cacheDir: fileURLToPath(new URL('../dist/cache/vite/', import.meta.url)),
 		css: { postcss: fileURLToPath(new URL('./', import.meta.url)) },
 		ssr: { noExternal: ['@astrojs/react'] },
-		environments: {
-			ssr: { resolve: { noExternal: ['@astrojs/react'] } },
-			prerender: { resolve: { noExternal: ['@astrojs/react'] } },
-		},
-		resolve: {
-			alias: {
-				'@utils': `${src}lib/utils.ts`,
-				'@components': `${src}components`,
-				'@ui': `${src}components/ui`,
-				'@lib': `${src}lib`,
-			},
-		},
+		environments: { ssr: { resolve: { noExternal: ['@astrojs/react'] } }, prerender: { resolve: { noExternal: ['@astrojs/react'] } } },
+		resolve: { alias: { '@utils': `${src}lib/utils.ts`, '@components': `${src}components`, '@ui': `${src}components/ui`, '@lib': `${src}lib` } },
 	},
 });

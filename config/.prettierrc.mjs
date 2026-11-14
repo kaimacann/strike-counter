@@ -1,1 +1,3 @@
-export { default } from '../.prettierrc.mjs';
+import config from '../prettier.config.cjs';
+
+export default config;

@@ -26,37 +26,73 @@ import scrimGradients from 'tailwindcss-scrim-gradients';
 import plugin from 'tailwindcss/plugin.js';
 
 // TYPES
-import type { Config, PluginUtils } from 'tailwindcss/types/config';
+import type { Config, PluginAPI, PluginUtils } from 'tailwindcss/types/config';
 
 /*//////////////////////////////////////////////////
 HELPERS
 //////////////////////////////////////////////////*/
 
-/**
- * Applies the apply Opacity Value.
- *
- * @param variable - The variable to inspect.
+const legacyColorLevels = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const;
+const colorLevels = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
+
+/** Creates an opacity-aware color callback for a CSS RGB custom property.
+ * @param variable - Custom property holding the RGB channel values.
+ * @returns A Tailwind color callback using the requested opacity.
  */
-const applyOpacityValue = (variable: string) => {
-	return (prop: Partial<{ opacityVariable: string; opacityValue: number }>) => {
-		const opacityValue = prop?.opacityValue;
-		return `rgb(var(${variable}) / ${opacityValue || '100'})`;
-	};
-};
+function applyOpacityValue(variable: string): (prop: Partial<{ opacityVariable: string; opacityValue: number }>) => string {
+	return (prop: Partial<{ opacityVariable: string; opacityValue: number }>): string => `rgb(var(${variable}) / ${prop?.opacityValue || '100'})`;
+}
 
-const colorScale = (name: string, includeLegacy = false): Record<number, ReturnType<typeof applyOpacityValue>> =>
-	Object.fromEntries([
-		...(includeLegacy ? [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950].map(n => [n, applyOpacityValue(`--${name}${n}`)] as const) : []),
-		...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => [n, applyOpacityValue(`--${name}-${n}`)] as const),
-	]);
+/** Builds a color scale from legacy and numbered custom properties.
+ * @param name - Prefix used for the palette's custom properties.
+ * @param includeLegacy - Whether to include the older hundred-step names.
+ * @returns Tailwind color callbacks keyed by their scale steps.
+ */
+function colorScale(name: string, includeLegacy = false): Record<number, ReturnType<typeof applyOpacityValue>> {
+	/** Maps one hundred-step palette token to its Tailwind opacity callback.
+	 * @param n - Legacy color level such as 50 or 500.
+	 * @returns The numeric level and callback for its legacy custom property.
+	 */
+	function toLegacyColorEntry(n: (typeof legacyColorLevels)[number]): readonly [number, ReturnType<typeof applyOpacityValue>] {
+		return [n, applyOpacityValue(`--${name}${n}`)];
+	}
+	/** Maps one numbered palette token to its Tailwind opacity callback.
+	 * @param n - Numbered color level from 1 through 12.
+	 * @returns The level and callback for its numbered custom property.
+	 */
+	function toNumberedColorEntry(n: (typeof colorLevels)[number]): readonly [number, ReturnType<typeof applyOpacityValue>] {
+		return [n, applyOpacityValue(`--${name}-${n}`)];
+	}
+	return Object.fromEntries([...(includeLegacy ? legacyColorLevels.map(toLegacyColorEntry) : []), ...colorLevels.map(toNumberedColorEntry)]);
+}
 
-const rangeMap = (start: number, end: number, key: (n: number) => number | string, value: (n: number) => string) =>
-	Object.fromEntries(
-		Array.from({ length: end - start + 1 }, (_, i) => {
-			const n = start + i;
-			return [key(n), value(n)] as const;
+/** Creates Tailwind grid-span values for each integer in the inclusive range.
+ * @param start - First span size to include.
+ * @param end - Last span size to include.
+ * @returns Grid span utilities keyed by their `span-N` names.
+ */
+function gridSpans(start: number, end: number): Record<string, string> {
+	return Object.fromEntries(
+		Array.from({ length: end - start + 1 }, (_unused: undefined, i: number): [string, string] => {
+			const span = start + i;
+			return [`span-${span}`, `span ${span} / span ${span}`];
 		}),
 	);
+}
+
+/** Creates numeric grid-line utilities for each integer in the inclusive range.
+ * @param start - First grid line to include.
+ * @param end - Last grid line to include.
+ * @returns Grid line utilities keyed by their numeric line names.
+ */
+function gridLines(start: number, end: number): Record<number, string> {
+	return Object.fromEntries(
+		Array.from({ length: end - start + 1 }, (_unused: undefined, i: number): [number, string] => {
+			const line = start + i;
+			return [line, String(line)];
+		}),
+	);
+}
 
 const transform =
 	'translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)) ';
@@ -71,18 +107,9 @@ const preset: Omit<Config, 'content'> = {
 					'0%, 20%': { maskPosition: '0 0', backgroundClip: 'text', maskImage: 'linear-gradient(110deg,white,45%,rgba(0,0,0,0.6),55%,white)', maskSize: '250% 100%' },
 					'80%, 100%': { maskPosition: '-200% 0', backgroundClip: 'text', maskImage: 'linear-gradient(110deg,white,45%,rgba(0,0,0,0.6),55%,white)', maskSize: '250% 100%' },
 				},
-				wiggle: {
-					'0%, 100%': { transform: transform + 'rotate(-2deg)' },
-					'50%': { transform: transform + 'rotate(2deg)' },
-				},
-				blink: {
-					'0%,70%,100%': { opacity: '1' },
-					'20%,50%': { opacity: '0' },
-				},
-				scaleIn: {
-					'0%': { transform: transform + 'scale(0.95)', opacity: '0' },
-					'100%': { transform: transform + 'scale(1)', opacity: '1' },
-				},
+				wiggle: { '0%, 100%': { transform: transform + 'rotate(-2deg)' }, '50%': { transform: transform + 'rotate(2deg)' } },
+				blink: { '0%,70%,100%': { opacity: '1' }, '20%,50%': { opacity: '0' } },
+				scaleIn: { '0%': { transform: transform + 'scale(0.95)', opacity: '0' }, '100%': { transform: transform + 'scale(1)', opacity: '1' } },
 				error: {
 					'10%, 90%': { transform: transform + 'translateX(-1px)' },
 					'20%, 80%': { transform: transform + 'translateX(2px)' },
@@ -103,10 +130,7 @@ const preset: Omit<Config, 'content'> = {
 			// prettier-ignore
 			transitionTimingFunction: {'quad-in-out': 'cubic-bezier(0.46,0.03,0.52,0.96);'},
 			// prettier-ignore
-			fontFamily: {
-				sans: [ 'Authentic Sans', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen-Sans', 'Ubuntu', 'Cantarell', 'Helvetica Neue', 'sans-serif', ],
-				serif: [ 'Avara', 'Authentic Sans', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen-Sans', 'Ubuntu', 'Cantarell', 'Helvetica Neue', 'sans-serif', ],
-			},
+			fontFamily: { sans: [ 'Authentic Sans', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen-Sans', 'Ubuntu', 'Cantarell', 'Helvetica Neue', 'sans-serif', ], serif: [ 'Avara', 'Authentic Sans', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen-Sans', 'Ubuntu', 'Cantarell', 'Helvetica Neue', 'sans-serif', ], },
 			borderRadius: { 100: '100%' },
 			colors: {
 				primary: colorScale('primary', true),
@@ -120,82 +144,67 @@ const preset: Omit<Config, 'content'> = {
 			ringColor: { ring: applyOpacityValue('--ring') },
 			ringOffsetColor: { background: applyOpacityValue('--background') },
 			scale: { 175: '1.75', 200: '2' },
-			minWidth: ({ theme }: PluginUtils) => ({
-				...(theme('maxWidth') as Record<string, string>),
-			}),
+			minWidth: ({ theme }: PluginUtils): Record<string, string> => ({ ...(theme('maxWidth') as Record<string, string>) }),
 			// Simple 20 column grid
 			gridTemplateColumns: { 20: 'repeat(20, minmax(0, 1fr))' },
 			// Simple 20 row grid
 			gridTemplateRows: { 20: 'repeat(20, minmax(0, 1fr))' },
-			gridColumn: rangeMap(
-				13,
-				20,
-				n => `span-${n}`,
-				n => `span ${n} / span ${n}`,
-			),
-			gridRow: rangeMap(
-				7,
-				20,
-				n => `span-${n}`,
-				n => `span ${n} / span ${n}`,
-			),
+			gridColumn: gridSpans(13, 20),
+			gridRow: gridSpans(7, 20),
 			// prettier-ignore
-			gridColumnStart: rangeMap(13, 21, n => n, String),
+			gridColumnStart: gridLines(13, 21),
 			// prettier-ignore
-			gridRowStart: rangeMap(8, 21, n => n, String),
+			gridRowStart: gridLines(8, 21),
 			// prettier-ignore
-			gridColumnEnd: rangeMap(13, 21, n => n, String),
+			gridColumnEnd: gridLines(13, 21),
 			// prettier-ignore
-			gridRowEnd: rangeMap(8, 21, n => n, String),
-			typography: ({ theme }: PluginUtils) => ({
-				DEFAULT: {
-					css: {
-						'--tw-prose-body': theme('colors.gray[11]'),
-						'--tw-prose-headings': theme('colors.gray[12]'),
-						'--tw-prose-lead': theme('colors.gray[10]'),
-						'--tw-prose-links': theme('colors.gray[12]'),
-						'--tw-prose-bold': theme('colors.gray[12]'),
-						'--tw-prose-counters': theme('colors.primary[600]'),
-						'--tw-prose-bullets': theme('colors.primary[400]'),
-						'--tw-prose-hr': theme('colors.gray[7]'),
-						'--tw-prose-quotes': theme('colors.gray[12]'),
-						'--tw-prose-quote-borders': theme('colors.gray[7]'),
-						'--tw-prose-captions': theme('colors.gray[10]'),
-						'--tw-prose-code': theme('colors.gray[12]'),
-						'--tw-prose-pre-code': theme('colors.gray[3]'),
-						'--tw-prose-pre-bg': theme('colors.gray[12]'),
-						'--tw-prose-th-borders': theme('colors.gray[7]'),
-						'--tw-prose-td-borders': theme('colors.gray[6]'),
-						'code::before': false,
-						'code::after': false,
-						strong: { color: 'inherit' },
-						a: {
-							position: 'relative',
-							fontWeight: theme('fontWeight.semibold'),
-							textDecoration: 'underline',
-							textUnderlineOffset: '3px',
+			gridRowEnd: gridLines(8, 21),
+			// Apply the project palette and link treatment to prose utilities.
+			typography: ({ theme }: PluginUtils) => {
+				return {
+					DEFAULT: {
+						css: {
+							'--tw-prose-body': theme('colors.gray[11]'),
+							'--tw-prose-headings': theme('colors.gray[12]'),
+							'--tw-prose-lead': theme('colors.gray[10]'),
+							'--tw-prose-links': theme('colors.gray[12]'),
+							'--tw-prose-bold': theme('colors.gray[12]'),
+							'--tw-prose-counters': theme('colors.primary[600]'),
+							'--tw-prose-bullets': theme('colors.primary[400]'),
+							'--tw-prose-hr': theme('colors.gray[7]'),
+							'--tw-prose-quotes': theme('colors.gray[12]'),
+							'--tw-prose-quote-borders': theme('colors.gray[7]'),
+							'--tw-prose-captions': theme('colors.gray[10]'),
+							'--tw-prose-code': theme('colors.gray[12]'),
+							'--tw-prose-pre-code': theme('colors.gray[3]'),
+							'--tw-prose-pre-bg': theme('colors.gray[12]'),
+							'--tw-prose-th-borders': theme('colors.gray[7]'),
+							'--tw-prose-td-borders': theme('colors.gray[6]'),
+							'code::before': false,
+							'code::after': false,
+							strong: { color: 'inherit' },
+							a: { position: 'relative', fontWeight: theme('fontWeight.semibold'), textDecoration: 'underline', textUnderlineOffset: '3px' },
+							'h1, h2, h3, h4, h5, h6': { color: 'inherit' },
+							'a:hover': { textUnderlineOffset: '3px' },
+							blockquote: { color: 'var(--primary-7)', borderLeftColor: 'rgba(var(--primary-7), 0.5)' },
+							'li::marker': { color: 'var(--primary-7)' },
 						},
-						'h1, h2, h3, h4, h5, h6': { color: 'inherit' },
-						'a:hover': { textUnderlineOffset: '3px' },
-						// set color with opacity
-						blockquote: { color: 'var(--primary-7)', borderLeftColor: 'rgba(var(--primary-7), 0.5)' },
-						'li::marker': { color: 'var(--primary-7)' },
 					},
-				},
-			}),
+				};
+			},
 		},
 	},
+	// Register interaction states and selectors for direct children.
 	plugins: [
 		typography,
 		headlessui,
 		scrimGradients,
 		animate,
-		plugin(function ({ addVariant, matchVariant }) {
+		plugin(({ addVariant, matchVariant }: PluginAPI): void => {
 			addVariant('hocus', ['&:hover', '&:focus']);
 			addVariant('hocus-visible', ['&:hover', '&:focus-visible']);
 			addVariant('enabled', '&:not(:disabled)');
-			// Default value for `child:`
-			matchVariant('*', value => `:where(& > ${value.replace(/_/g, ' ')})`, { values: { DEFAULT: '*' } });
+			matchVariant('*', (value: string): string => `:where(& > ${value.replace(/_/g, ' ')})`, { values: { DEFAULT: '*' } });
 		}),
 	],
 };
