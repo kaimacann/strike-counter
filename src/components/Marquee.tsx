@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '@utils';
 
-// terra-quality-ignore single-use -- The named default export preserves the React DevTools component name.
+// hygiene-ignore single-use -- The named default export preserves the React DevTools component name.
 /**
  * Renders a repeating, screen-reader-friendly marquee for three strikes.
  *

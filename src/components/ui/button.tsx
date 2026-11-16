@@ -27,7 +27,7 @@ export const Button = React.forwardRef(function (
 	},
 	ref: React.ForwardedRef<HTMLButtonElement>,
 ): React.ReactElement {
-	// terra-quality-ignore single-use -- JSX requires a capitalized binding for the selected component.
+	// hygiene-ignore single-use -- JSX requires a capitalized binding for the selected component.
 	const Component = asChild ? Slot : 'button';
 	const normalizedVariant = normalizeActionVariant(variant);
 	return (

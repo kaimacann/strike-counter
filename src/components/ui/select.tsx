@@ -74,7 +74,7 @@ export function SelectItem({ className, children, ...attributes }: React.Compone
 		</Primitive.Item>
 	);
 }
-// terra-quality-ignore single-use -- Exported separator remains available to select consumers.
+// hygiene-ignore single-use -- Exported separator remains available to select consumers.
 /** Separates groups of options inside the select content.
  * @returns A horizontal Radix separator.
  */

@@ -52,7 +52,7 @@ HELPERS
 COMPONENT
 //////////////////////////////////////////////////*/
 
-// terra-quality-ignore single-use -- Hooks must stay in a child component for ErrorBoundary to catch render failures.
+// hygiene-ignore single-use -- Hooks must stay in a child component for ErrorBoundary to catch render failures.
 /**
  * Renders the account-scoped scoreboard and its strike and sharing controls.
  *
@@ -383,7 +383,7 @@ function ScoreboardContent({ account, signOut }: { account: { id: string; email:
 	);
 }
 
-// terra-quality-ignore single-use -- The named default export preserves the React DevTools component name.
+// hygiene-ignore single-use -- The named default export preserves the React DevTools component name.
 /**
  * Renders the Bridgette controls and image board.
  *

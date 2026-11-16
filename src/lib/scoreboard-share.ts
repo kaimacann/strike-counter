@@ -1,4 +1,4 @@
-// terra-quality-ignore single-use -- Exported invitation helper is also exercised through the public test contract.
+// hygiene-ignore single-use -- Exported invitation helper is also exercised through the public test contract.
 /** Persists a scoreboard invitation before attempting optional clipboard assistance.
  * @param persistShare - Request that stores the invitation for the recipient.
  * @param copyLink - Browser operation that copies the share URL.

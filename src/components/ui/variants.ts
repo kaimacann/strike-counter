@@ -37,7 +37,7 @@ export const ACTION_CLASSES = {
 	'destructive-underline': 'border-transparent bg-transparent text-rose-800 underline underline-offset-4 hover:text-rose-950',
 } satisfies Record<ActionVariant, string>;
 
-// terra-quality-ignore single-use -- Exported palette map is part of the UI variant API.
+// hygiene-ignore single-use -- Exported palette map is part of the UI variant API.
 export const CONTROL_CLASSES = {
 	primary: 'border-gray-300 bg-white text-gray-950 placeholder:text-gray-500 focus-visible:border-cyan-700 focus-visible:ring-cyan-700',
 	'primary-outline': 'border-gray-300 bg-transparent text-gray-950 placeholder:text-gray-500 focus-visible:border-cyan-700 focus-visible:ring-cyan-700',
@@ -57,7 +57,7 @@ export const CONTROL_CLASSES = {
 	'destructive-tonal': 'border-transparent bg-rose-50 text-rose-950 placeholder:text-rose-700/60 focus-visible:border-rose-700 focus-visible:ring-rose-700',
 } satisfies Record<ControlVariant, string>;
 
-// terra-quality-ignore single-use -- Exported surface map is part of the UI variant API.
+// hygiene-ignore single-use -- Exported surface map is part of the UI variant API.
 export const SURFACE_CLASSES = {
 	primary: 'border-gray-200 bg-white text-gray-950',
 	'primary-outline': 'border-cyan-700 bg-transparent text-gray-950',
@@ -81,7 +81,7 @@ export const SURFACE_CLASSES = {
 	'destructive-saturated': 'border-transparent bg-rose-800 text-white',
 } satisfies Record<SurfaceVariant, string>;
 
-// terra-quality-ignore single-use -- Exported CVA factory remains available to UI consumers.
+// hygiene-ignore single-use -- Exported CVA factory remains available to UI consumers.
 export const BUTTON_VARIANTS = cva(
 	'inline-flex items-center justify-center gap-2 rounded-md border font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
 	{
@@ -106,7 +106,7 @@ export function controlClasses(variant: ControlVariant = 'primary', size: UiSize
 	].join(' ');
 }
 
-// terra-quality-ignore single-use -- Exported class builder is available to other UI consumers.
+// hygiene-ignore single-use -- Exported class builder is available to other UI consumers.
 /** Builds the border and palette classes for a content surface.
  * @param variant - Semantic surface treatment.
  * @returns Tailwind classes for the selected surface.
@@ -115,10 +115,10 @@ export function surfaceClasses(variant: SurfaceVariant = 'gray'): string {
 	return ['rounded-md border', SURFACE_CLASSES[variant]].join(' ');
 }
 
-// terra-quality-ignore single-use -- Exported input accent map remains available to UI consumers.
+// hygiene-ignore single-use -- Exported input accent map remains available to UI consumers.
 export const inputAccentClasses: Record<UiColor, string> = { primary: 'accent-cyan-700', secondary: 'accent-yellow-600', gray: 'accent-gray-600', destructive: 'accent-rose-700' };
 
-// terra-quality-ignore single-use -- Exported variant parser is part of the UI variant API.
+// hygiene-ignore single-use -- Exported variant parser is part of the UI variant API.
 /** Reads the color family from an action, control, or surface key.
  * @param variant - Full semantic variant key.
  * @returns The primary color-family segment.
@@ -132,7 +132,7 @@ export type LegacyButtonVariant = 'account' | 'outline' | 'tonal-secondary' | 'u
 /** Legacy size names accepted at compatibility boundaries. */
 export type LegacyButtonSize = 'default' | 'icon' | 'link';
 
-// terra-quality-ignore single-use -- Exported compatibility mapper preserves the button API.
+// hygiene-ignore single-use -- Exported compatibility mapper preserves the button API.
 /** Maps old button treatments onto the current semantic action names.
  * @param variant - Current or legacy action treatment.
  * @returns A valid current action variant.
@@ -145,7 +145,7 @@ export function normalizeActionVariant(variant: ActionVariant | LegacyButtonVari
 	return variant;
 }
 
-// terra-quality-ignore single-use -- Exported compatibility mapper preserves the button API.
+// hygiene-ignore single-use -- Exported compatibility mapper preserves the button API.
 /** Maps old button dimensions onto the current compact-to-prominent scale.
  * @param size - Current or legacy button size.
  * @returns A valid current UI size.
