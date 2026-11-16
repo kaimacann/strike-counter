@@ -1,7 +1,7 @@
 ---
 import '../styles.css';
 
-const { title, description = 'A shared community baseball scoreboard.' } = Astro.props;
+const { title, desc = 'A shared community baseball scoreboard.' } = Astro.props;
 ---
 
 <!doctype html>
@@ -9,7 +9,7 @@ const { title, description = 'A shared community baseball scoreboard.' } = Astro
 	<head>
 		<meta charset='utf-8' />
 		<meta name='viewport' content='width=device-width, initial-scale=1' />
-		<meta name='description' content={description} />
+		<meta name='description' content={desc} />
 		<meta name='theme-color' content='#fffaf0' />
 		<title>{title}</title>
 	</head>
